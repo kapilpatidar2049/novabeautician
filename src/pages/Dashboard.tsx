@@ -5,11 +5,20 @@ import { useApp } from '@/context/AppContext';
 import { BottomNav } from '@/components/BottomNav';
 import { OnlineToggle } from '@/components/OnlineToggle';
 import { AppointmentCard } from '@/components/AppointmentCard';
-import { mockEarnings } from '@/data/mockData';
-
 export default function Dashboard() {
   const navigate = useNavigate();
   const { beautician, appointments, isLocationSharing, activeAppointment } = useApp();
+
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayEarnings = appointments
+    .filter((apt) => {
+      if (apt.status !== 'completed') return false;
+      const d = new Date(apt.scheduledTime);
+      d.setHours(0, 0, 0, 0);
+      return d.getTime() === today.getTime();
+    })
+    .reduce((sum, apt) => sum + apt.totalAmount, 0);
 
   const todayAppointments = appointments.filter(
     apt => apt.status !== 'completed' && apt.status !== 'cancelled'
@@ -50,11 +59,10 @@ export default function Dashboard() {
               <span className="text-xs">Today's Earnings</span>
             </div>
             <p className="text-2xl font-bold text-foreground">
-              ₹{mockEarnings.today.toLocaleString()}
+              ₹{todayEarnings.toLocaleString()}
             </p>
-            <p className="text-xs text-muted-foreground mt-1 flex items-center gap-1">
-              <TrendingUp className="w-3 h-3 text-success" />
-              <span className="text-success">+12%</span> vs yesterday
+            <p className="text-xs text-muted-foreground mt-1">
+              From completed jobs today
             </p>
           </div>
         </div>

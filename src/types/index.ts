@@ -1,4 +1,4 @@
-export type JobStatus = 'pending' | 'accepted' | 'in_transit' | 'reached' | 'in_progress' | 'completed' | 'cancelled';
+export type JobStatus = 'pending' | 'accepted' | 'rejected' | 'in_transit' | 'reached' | 'in_progress' | 'completed' | 'cancelled';
 
 export interface Customer {
   id: string;

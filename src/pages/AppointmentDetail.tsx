@@ -1,4 +1,5 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useEffect } from 'react';
 import { format } from 'date-fns';
 import { ArrowLeft, Phone, Clock, MessageCircle, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -6,6 +7,7 @@ import { useApp } from '@/context/AppContext';
 import { StatusBadge } from '@/components/ui/StatusBadge';
 import { MapPlaceholder } from '@/components/MapPlaceholder';
 import { ServiceExecutionFlow } from '@/components/ServiceExecutionFlow';
+import { useLocationSharing } from '@/hooks/useLocationSharing';
 
 export default function AppointmentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -32,18 +34,22 @@ export default function AppointmentDetail() {
     );
   }
 
-  // Set as active appointment when viewing
-  if (appointment.status !== 'pending' && appointment.status !== 'completed') {
-    setActiveAppointment(appointment);
-  }
+  useEffect(() => {
+    if (appointment.status !== 'pending' && appointment.status !== 'completed' && appointment.status !== 'cancelled' && appointment.status !== 'rejected') {
+      setActiveAppointment(appointment);
+    }
+    return () => setActiveAppointment(null);
+  }, [appointment.id, appointment.status]);
 
   const totalDuration = appointment.services.reduce((acc, s) => acc + s.duration, 0);
 
-  const showLocationSharing = 
-    appointment.status === 'accepted' || 
-    appointment.status === 'in_transit' || 
+  const showLocationSharing =
+    appointment.status === 'accepted' ||
+    appointment.status === 'in_transit' ||
     appointment.status === 'reached' ||
     appointment.status === 'in_progress';
+
+  useLocationSharing(appointment.id, showLocationSharing);
 
   return (
     <div className="min-h-screen bg-background pb-6">

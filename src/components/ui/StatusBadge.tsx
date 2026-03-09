@@ -15,6 +15,10 @@ const statusConfig: Record<JobStatus, { label: string; className: string }> = {
     label: 'Accepted',
     className: 'bg-info/15 text-info border-info/30',
   },
+  rejected: {
+    label: 'Rejected',
+    className: 'bg-destructive/15 text-destructive border-destructive/30',
+  },
   in_transit: {
     label: 'On the way',
     className: 'bg-info/15 text-info border-info/30',

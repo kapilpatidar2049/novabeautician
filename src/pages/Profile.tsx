@@ -13,23 +13,28 @@ import {
 import { useApp } from '@/context/AppContext';
 import { BottomNav } from '@/components/BottomNav';
 import { OnlineToggle } from '@/components/OnlineToggle';
-import { mockEarnings } from '@/data/mockData';
 import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
 export default function Profile() {
   const navigate = useNavigate();
-  const { beautician } = useApp();
+  const { beautician, appointments, logout } = useApp();
+
+  const now = new Date();
+  const thisMonthEarnings = appointments
+    .filter((a) => a.status === 'completed' && new Date(a.scheduledTime).getMonth() === now.getMonth() && new Date(a.scheduledTime).getFullYear() === now.getFullYear())
+    .reduce((sum, a) => sum + a.totalAmount, 0);
 
   const menuItems = [
-    { icon: IndianRupee, label: 'Earnings', value: `₹${mockEarnings.thisMonth.toLocaleString()}` },
+    { icon: IndianRupee, label: 'Earnings', value: `₹${thisMonthEarnings.toLocaleString()}` },
     { icon: FileText, label: 'Documents', chevron: true },
     { icon: Shield, label: 'Privacy & Security', chevron: true },
     { icon: HelpCircle, label: 'Help & Support', chevron: true },
   ];
 
   const handleLogout = () => {
+    logout();
     navigate('/');
   };
 

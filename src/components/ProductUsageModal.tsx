@@ -3,7 +3,8 @@ import { Plus, Minus, X, Package } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ProductUsage } from '@/types';
-import { availableProducts } from '@/data/mockData';
+
+const AVAILABLE_PRODUCTS: { id: string; name: string; unit: string }[] = [];
 
 interface ProductUsageModalProps {
   open: boolean;
@@ -15,12 +16,9 @@ export function ProductUsageModal({ open, onClose, onSubmit }: ProductUsageModal
   const [products, setProducts] = useState<ProductUsage[]>([]);
 
   const addProduct = (productId: string) => {
-    const product = availableProducts.find(p => p.id === productId);
-    if (product && !products.find(p => p.id === productId)) {
-      setProducts([
-        ...products,
-        { id: product.id, name: product.name, quantity: 1, unit: product.unit },
-      ]);
+    const product = AVAILABLE_PRODUCTS.find((p) => p.id === productId);
+    if (product && !products.find((p) => p.id === productId)) {
+      setProducts([...products, { id: product.id, name: product.name, quantity: 1, unit: product.unit }]);
     }
   };
 
@@ -86,9 +84,7 @@ export function ProductUsageModal({ open, onClose, onSubmit }: ProductUsageModal
           <div className="space-y-2">
             <p className="text-sm font-medium text-muted-foreground">Add Products</p>
             <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-              {availableProducts
-                .filter(p => !products.find(sp => sp.id === p.id))
-                .map(product => (
+              {AVAILABLE_PRODUCTS.filter((p) => !products.find((sp) => sp.id === p.id)).map((product) => (
                   <button
                     key={product.id}
                     onClick={() => addProduct(product.id)}
