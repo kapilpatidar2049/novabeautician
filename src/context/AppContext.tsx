@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Appointment, BeauticianProfile, Notification, JobStatus } from '@/types';
 import { beauticianApi, authApi, setAuthTokens, clearAuth, setUser, getUser, type ApiAppointment } from '@/lib/api';
-import { getFCMToken, isFirebaseConfigured } from '@/lib/firebase';
+import { getFCMToken, isFirebaseConfigured, onFCMMessage } from '@/lib/firebase';
+import alertSound from '@/alert.mp3';
 
 function mapApiAppointmentToAppointment(item: ApiAppointment): Appointment {
   const [lng, lat] = item.location?.coordinates ?? [72.83, 19.06];
@@ -100,6 +101,19 @@ export function AppProvider({ children }: { children: ReactNode }) {
     getFCMToken().then((token) => {
       if (token) authApi.registerFcmToken(token).catch(() => {});
     });
+  }, [isLoggedIn]);
+
+  // Play alert tone when a new appointment notification arrives via FCM while app is open
+  useEffect(() => {
+    if (!isLoggedIn || !isFirebaseConfigured()) return;
+    const unsubscribe = onFCMMessage((payload) => {
+      const type = payload.data?.type;
+      if (type === 'appointment_created') {
+        const audio = new Audio(alertSound);
+        audio.play().catch(() => {});
+      }
+    });
+    return unsubscribe;
   }, [isLoggedIn]);
 
   const login = async (email: string, password: string) => {
