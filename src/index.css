@@ -8,90 +8,85 @@
 
 @layer base {
   :root {
-    --background: 30 20% 98%;
-    --foreground: 20 20% 15%;
+    /* Nova Beauty – shared navy & gold theme */
+    --background: 226 45% 16%;          /* #151F3A */
+    --foreground: 44 63% 94%;           /* #F9F5E9 */
 
-    --card: 0 0% 100%;
-    --card-foreground: 20 20% 15%;
+    --card: 225 38% 20%;                /* #1E2946 */
+    --card-foreground: 44 63% 94%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 20 20% 15%;
+    --popover: 225 38% 20%;
+    --popover-foreground: 44 63% 94%;
 
-    /* Warm Rose Primary */
-    --primary: 350 65% 55%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 59% 61%;              /* #D9B45A */
+    --primary-foreground: 226 45% 16%;  /* navy on gold */
 
-    /* Soft Cream Secondary */
-    --secondary: 30 30% 95%;
-    --secondary-foreground: 20 20% 25%;
+    --secondary: 225 33% 25%;           /* #243157 */
+    --secondary-foreground: 44 63% 94%;
 
-    --muted: 30 15% 92%;
-    --muted-foreground: 20 10% 45%;
+    --muted: 225 38% 20%;
+    --muted-foreground: 225 29% 73%;    /* #A3AEC9 */
 
-    /* Warm Coral Accent */
-    --accent: 15 80% 60%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 176 49% 48%;              /* #3BB7B4 */
+    --accent-foreground: 207 69% 6%;    /* #051018 */
 
     --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 100%;
 
-    /* Success Green */
     --success: 152 60% 45%;
     --success-foreground: 0 0% 100%;
 
-    /* Warning Amber */
     --warning: 38 92% 50%;
-    --warning-foreground: 20 20% 15%;
+    --warning-foreground: 226 45% 16%;
 
-    /* Info Blue */
     --info: 210 80% 55%;
     --info-foreground: 0 0% 100%;
 
-    --border: 30 20% 88%;
-    --input: 30 20% 88%;
-    --ring: 350 65% 55%;
+    --border: 224 39% 26%;              /* #2B365B */
+    --input: 224 39% 26%;
+    --ring: 43 59% 61%;
 
     --radius: 0.75rem;
 
-    /* Custom app tokens */
-    --gradient-primary: linear-gradient(135deg, hsl(350 65% 55%), hsl(15 80% 60%));
+    /* Custom app tokens (updated to navy/gold) */
+    --gradient-primary: linear-gradient(135deg, hsl(43 59% 61%), hsl(42 59% 54%));
     --gradient-success: linear-gradient(135deg, hsl(152 60% 45%), hsl(165 60% 50%));
-    --gradient-card: linear-gradient(180deg, hsl(0 0% 100%), hsl(30 20% 98%));
-    --shadow-card: 0 2px 12px -2px hsl(20 20% 15% / 0.08);
-    --shadow-elevated: 0 8px 24px -4px hsl(20 20% 15% / 0.12);
-    --shadow-button: 0 4px 14px -2px hsl(350 65% 55% / 0.35);
+    --gradient-card: linear-gradient(180deg, hsl(225 38% 20%), hsl(226 45% 16%));
+    --shadow-card: 0 2px 12px -2px hsl(226 45% 8% / 0.35);
+    --shadow-elevated: 0 8px 24px -4px hsl(226 45% 8% / 0.6);
+    --shadow-button: 0 4px 14px -2px hsl(43 59% 61% / 0.45);
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 226 45% 16%;
+    --sidebar-foreground: 44 63% 94%;
+    --sidebar-primary: 43 59% 61%;
+    --sidebar-primary-foreground: 226 45% 16%;
+    --sidebar-accent: 225 33% 25%;
+    --sidebar-accent-foreground: 44 63% 94%;
+    --sidebar-border: 224 39% 26%;
+    --sidebar-ring: 43 59% 61%;
   }
 
   .dark {
-    --background: 20 15% 10%;
-    --foreground: 30 20% 95%;
+    --background: 226 45% 12%;
+    --foreground: 44 63% 94%;
 
-    --card: 20 15% 14%;
-    --card-foreground: 30 20% 95%;
+    --card: 225 38% 18%;
+    --card-foreground: 44 63% 94%;
 
-    --popover: 20 15% 14%;
-    --popover-foreground: 30 20% 95%;
+    --popover: 225 38% 18%;
+    --popover-foreground: 44 63% 94%;
 
-    --primary: 350 65% 60%;
-    --primary-foreground: 0 0% 100%;
+    --primary: 43 59% 65%;
+    --primary-foreground: 226 45% 12%;
 
-    --secondary: 20 15% 18%;
-    --secondary-foreground: 30 20% 90%;
+    --secondary: 225 33% 24%;
+    --secondary-foreground: 44 63% 94%;
 
-    --muted: 20 15% 20%;
-    --muted-foreground: 30 15% 60%;
+    --muted: 225 33% 22%;
+    --muted-foreground: 225 29% 73%;
 
-    --accent: 15 80% 55%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 176 49% 52%;
+    --accent-foreground: 207 69% 6%;
 
     --destructive: 0 62.8% 45%;
     --destructive-foreground: 0 0% 100%;
@@ -100,23 +95,23 @@
     --success-foreground: 0 0% 100%;
 
     --warning: 38 85% 45%;
-    --warning-foreground: 0 0% 100%;
+    --warning-foreground: 226 45% 12%;
 
     --info: 210 75% 50%;
     --info-foreground: 0 0% 100%;
 
-    --border: 20 15% 22%;
-    --input: 20 15% 22%;
-    --ring: 350 65% 60%;
+    --border: 225 33% 22%;
+    --input: 225 33% 22%;
+    --ring: 43 59% 65%;
 
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 226 45% 10%;
+    --sidebar-foreground: 44 63% 94%;
+    --sidebar-primary: 43 59% 65%;
+    --sidebar-primary-foreground: 226 45% 10%;
+    --sidebar-accent: 225 33% 24%;
+    --sidebar-accent-foreground: 44 63% 94%;
+    --sidebar-border: 225 33% 24%;
+    --sidebar-ring: 43 59% 65%;
   }
 }
 
