@@ -103,6 +103,11 @@ export const authApi = {
     }>("/auth/verify-otp", { method: "POST", body: JSON.stringify({ phone, otp }) }),
   registerFcmToken: (token: string) =>
     request("/auth/fcm-token", { method: "POST", body: JSON.stringify({ token }) }),
+  registerBeautician: (body: { name: string; email: string; password: string; phone?: string; cityId?: string; vendorId?: string; documents?: Array<{ type?: string; url: string }> }) =>
+    request<{ user: { id: string; name: string; email: string; phone?: string; role: string; isActive: boolean } }>("/auth/register-beautician", {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
 };
 
 export interface ApiAppointment {

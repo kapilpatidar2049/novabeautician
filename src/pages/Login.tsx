@@ -225,6 +225,14 @@ export default function Login() {
             </Button>
           </TabsContent>
         </Tabs>
+
+        <button
+          type="button"
+          className="mt-4 text-xs text-primary underline"
+          onClick={() => navigate('/register')}
+        >
+          New beautician? Register here
+        </button>
       </div>
 
       <div className="p-6 text-center">
