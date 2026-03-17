@@ -137,4 +137,9 @@ export const beauticianApi = {
     request<ApiAppointment>(`/beautician/appointments/${id}/complete`, { method: "PUT" }),
   updateLocation: (body: { appointmentId: string; lat: number; lng: number }) =>
     request("/beautician/location/update", { method: "POST", body: JSON.stringify(body) }),
+  setAvailability: (isAvailable: boolean) =>
+    request<{ isAvailable: boolean }>("/beautician/availability", {
+      method: "POST",
+      body: JSON.stringify({ isAvailable }),
+    }),
 };

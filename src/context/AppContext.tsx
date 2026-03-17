@@ -198,8 +198,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  const toggleOnlineStatus = () => {
-    setBeautician((prev) => ({ ...prev, isOnline: !prev.isOnline }));
+  const toggleOnlineStatus = async () => {
+    const next = !beautician.isOnline;
+    try {
+      await beauticianApi.setAvailability(next);
+      setBeautician((prev) => ({ ...prev, isOnline: next }));
+    } catch {
+      // ignore API errors, keep previous state
+    }
   };
 
   const markNotificationRead = (notificationId: string) => {
