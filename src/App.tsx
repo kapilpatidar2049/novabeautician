@@ -12,13 +12,18 @@ import AppointmentDetail from "./pages/AppointmentDetail";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import KycStatus from "./pages/KycStatus";
 
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { isLoggedIn } = useApp();
+  const { isLoggedIn, kyc } = useApp();
   const location = useLocation();
   if (!isLoggedIn && location.pathname !== "/") return <Navigate to="/" replace />;
+  const kycStatus = kyc?.kycStatus || "pending";
+  if (isLoggedIn && kycStatus !== "approved" && location.pathname !== "/kyc") {
+    return <Navigate to="/kyc" replace />;
+  }
   return <>{children}</>;
 }
 
@@ -33,6 +38,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/kyc" element={<ProtectedRoute><KycStatus /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/appointments" element={<ProtectedRoute><Appointments /></ProtectedRoute>} />
               <Route path="/appointment/:id" element={<ProtectedRoute><AppointmentDetail /></ProtectedRoute>} />

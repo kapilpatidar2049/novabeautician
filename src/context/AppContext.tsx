@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { Appointment, BeauticianProfile, Notification, JobStatus } from '@/types';
-import { beauticianApi, authApi, setAuthTokens, clearAuth, setUser, getUser, type ApiAppointment } from '@/lib/api';
+import { beauticianApi, authApi, setAuthTokens, clearAuth, setUser, getUser, type ApiAppointment, type ApiKycStatus, type ApiKycDocument } from '@/lib/api';
 import { getFCMToken, isFirebaseConfigured, onFCMMessage } from '@/lib/firebase';
 import alertSound from '@/alert.mp3';
 
@@ -52,6 +52,8 @@ interface AppContextType {
   logout: () => void;
   appointmentsLoading: boolean;
   refreshAppointments: () => Promise<void>;
+  kyc: ApiKycStatus | null;
+  refreshKyc: () => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -75,6 +77,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(!!savedUser);
   const [appointmentsLoading, setAppointmentsLoading] = useState(false);
+  const [kyc, setKyc] = useState<ApiKycStatus | null>(null);
 
   const refreshAppointments = useCallback(async () => {
     setAppointmentsLoading(true);
@@ -90,11 +93,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const refreshKyc = useCallback(async () => {
+    try {
+      const res = await beauticianApi.getKyc();
+      if (res.success && res.data) {
+        setKyc(res.data as ApiKycStatus);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
     if (isLoggedIn) {
       refreshAppointments();
+      refreshKyc();
     }
-  }, [isLoggedIn, refreshAppointments]);
+  }, [isLoggedIn, refreshAppointments, refreshKyc]);
 
   useEffect(() => {
     if (!isLoggedIn || !isFirebaseConfigured()) return;
@@ -130,6 +145,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser({ id: user.id, name: user.name, email: user.email, phone: user.phone });
         setBeautician((b) => ({ ...b, name: user.name }));
         setIsLoggedIn(true);
+        await refreshKyc();
         return { ok: true };
       }
       return { ok: false, error: (res as { message?: string }).message || 'Login failed' };
@@ -160,6 +176,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setUser({ id: user.id, name: user.name, email: user.email, phone: user.phone });
         setBeautician((b) => ({ ...b, name: user.name }));
         setIsLoggedIn(true);
+        await refreshKyc();
         return { ok: true };
       }
       return { ok: false, error: (res as { message?: string }).message || 'Verification failed' };
@@ -235,6 +252,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
         logout,
         appointmentsLoading,
         refreshAppointments,
+        kyc,
+        refreshKyc,
       }}
     >
       {children}

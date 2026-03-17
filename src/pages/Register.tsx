@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Mail, Lock, Phone, User as UserIcon, Building } from "lucide-react";
+import { ArrowLeft, Mail, Lock, Phone, User as UserIcon, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authApi } from "@/lib/api";
@@ -11,8 +11,7 @@ export default function Register() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [phone, setPhone] = useState("");
-  const [cityId, setCityId] = useState("");
-  const [vendorId, setVendorId] = useState("");
+  const [city, setCity] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
@@ -31,8 +30,6 @@ export default function Register() {
         email: email.trim(),
         password,
         phone: phone.trim() || undefined,
-        cityId: cityId.trim() || undefined,
-        vendorId: vendorId.trim() || undefined,
       });
       if (res.success) {
         setSuccess("Registration submitted. Admin will approve your account. You can then log in.");
@@ -117,26 +114,18 @@ export default function Register() {
 
           <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              <Building className="w-4 h-4" />
+              <MapPin className="w-4 h-4" />
             </div>
-            <Input
-              placeholder="City ID (optional)"
-              className="pl-10"
-              value={cityId}
-              onChange={(e) => setCityId(e.target.value)}
-            />
-          </div>
-
-          <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              <Building className="w-4 h-4" />
-            </div>
-            <Input
-              placeholder="Vendor ID (optional)"
-              className="pl-10"
-              value={vendorId}
-              onChange={(e) => setVendorId(e.target.value)}
-            />
+            <select
+              className="pl-10 pr-3 py-2 w-full rounded-md border border-input bg-background text-sm text-foreground"
+              value={city}
+              onChange={(e) => setCity(e.target.value)}
+            >
+              <option value="">Select city (optional)</option>
+              <option value="Indore">Indore</option>
+              <option value="Bhopal">Bhopal</option>
+              <option value="Ujjain">Ujjain</option>
+            </select>
           </div>
         </div>
 
