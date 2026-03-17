@@ -103,7 +103,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, [isLoggedIn]);
 
-  // Play alert tone when a new appointment notification arrives via FCM while app is open
+  // Play alert tone and refresh list when a new appointment notification arrives via FCM while app is open
   useEffect(() => {
     if (!isLoggedIn || !isFirebaseConfigured()) return;
     const unsubscribe = onFCMMessage((payload) => {
@@ -111,10 +111,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (type === 'appointment_created') {
         const audio = new Audio(alertSound);
         audio.play().catch(() => {});
+        // Fetch latest jobs so newly assigned bookings appear immediately
+        refreshAppointments();
       }
     });
     return unsubscribe;
-  }, [isLoggedIn]);
+  }, [isLoggedIn, refreshAppointments]);
 
   const login = async (email: string, password: string) => {
     try {
