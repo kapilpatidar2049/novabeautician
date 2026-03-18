@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Shield, UploadCloud, AlertCircle, CheckCircle2 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
@@ -17,6 +17,16 @@ export default function KycStatus() {
   const [expFile, setExpFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
+
+  useEffect(() => {
+    if (!kyc) {
+      refreshKyc();
+      return;
+    }
+    if (kyc.kycStatus === 'approved') {
+      navigate('/dashboard');
+    }
+  }, [kyc, navigate, refreshKyc]);
 
   const handleSubmitDocs = async () => {
     if (!idFile && !selfieFile && !expFile) {
