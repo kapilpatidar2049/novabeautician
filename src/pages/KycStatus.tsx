@@ -108,16 +108,19 @@ export default function KycStatus() {
             Upload clear photos of your ID proof, selfie and experience certificate. Supported formats: JPG, PNG.
           </p>
           <div className="space-y-2">
+            <span>ID Proof</span>
             <Input
               type="file"
               accept="image/*"
               onChange={(e) => setIdFile(e.target.files?.[0] || null)}
             />
+            <span>Selfie</span>
             <Input
               type="file"
               accept="image/*"
               onChange={(e) => setSelfieFile(e.target.files?.[0] || null)}
             />
+            <span>Experience Certificate (Optional)</span>
             <Input
               type="file"
               accept="image/*"
