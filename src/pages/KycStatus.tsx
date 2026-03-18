@@ -12,29 +12,35 @@ export default function KycStatus() {
   const status = kyc?.kycStatus || 'pending';
   const docs = kyc?.documents || [];
 
-  const [idUrl, setIdUrl] = useState('');
-  const [selfieUrl, setSelfieUrl] = useState('');
-  const [expUrl, setExpUrl] = useState('');
+  const [idFile, setIdFile] = useState<File | null>(null);
+  const [selfieFile, setSelfieFile] = useState<File | null>(null);
+  const [expFile, setExpFile] = useState<File | null>(null);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
 
   const handleSubmitDocs = async () => {
-    const payload: Array<{ type: string; url: string }> = [];
-    if (idUrl.trim()) payload.push({ type: 'aadhar', url: idUrl.trim() });
-    if (selfieUrl.trim()) payload.push({ type: 'selfie', url: selfieUrl.trim() });
-    if (expUrl.trim()) payload.push({ type: 'experience', url: expUrl.trim() });
-    if (!payload.length) {
-      setError('Please add at least ID proof or selfie URL.');
+    if (!idFile && !selfieFile && !expFile) {
+      setError('Please upload at least ID proof or selfie image.');
       return;
     }
     setError('');
     setSaving(true);
     try {
-      await beauticianApi.submitKyc(payload);
+      const uploadRes = await beauticianApi.uploadKycDocuments({
+        idFile,
+        selfieFile,
+        expFile,
+      });
+      const documents = uploadRes.data?.documents || [];
+      if (!documents.length) {
+        setError('No files were uploaded. Please try again.');
+        return;
+      }
+      await beauticianApi.submitKyc(documents);
       await refreshKyc();
-      setIdUrl('');
-      setSelfieUrl('');
-      setExpUrl('');
+      setIdFile(null);
+      setSelfieFile(null);
+      setExpFile(null);
     } catch (e) {
       setError(e instanceof Error ? e.message : 'Failed to submit documents');
     } finally {
@@ -96,27 +102,26 @@ export default function KycStatus() {
         <div className="rounded-xl border border-border bg-card p-4 space-y-3">
           <div className="flex items-center gap-2 mb-1">
             <UploadCloud className="w-4 h-4 text-primary" />
-            <p className="text-sm font-medium text-foreground">Upload document links</p>
+            <p className="text-sm font-medium text-foreground">Upload document images</p>
           </div>
           <p className="text-[11px] text-muted-foreground">
-            For now, paste file URLs (from your storage like Google Drive / S3). In production this will be a proper file
-            uploader.
+            Upload clear photos of your ID proof, selfie and experience certificate. Supported formats: JPG, PNG.
           </p>
           <div className="space-y-2">
             <Input
-              placeholder="ID proof URL (Aadhar / PAN)"
-              value={idUrl}
-              onChange={(e) => setIdUrl(e.target.value)}
+              type="file"
+              accept="image/*"
+              onChange={(e) => setIdFile(e.target.files?.[0] || null)}
             />
             <Input
-              placeholder="Selfie URL"
-              value={selfieUrl}
-              onChange={(e) => setSelfieUrl(e.target.value)}
+              type="file"
+              accept="image/*"
+              onChange={(e) => setSelfieFile(e.target.files?.[0] || null)}
             />
             <Input
-              placeholder="Experience certificate URL (optional)"
-              value={expUrl}
-              onChange={(e) => setExpUrl(e.target.value)}
+              type="file"
+              accept="image/*"
+              onChange={(e) => setExpFile(e.target.files?.[0] || null)}
             />
           </div>
           {error && <p className="text-xs text-destructive">{error}</p>}

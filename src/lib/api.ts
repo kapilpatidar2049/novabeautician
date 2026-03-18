@@ -44,9 +44,12 @@ async function request<T>(
   }
   const token = getToken();
   const headers: Record<string, string> = {
-    "Content-Type": "application/json",
     ...(init.headers as Record<string, string>),
   };
+  // Only set JSON content type when not sending FormData (for file uploads)
+  if (!(init.body instanceof FormData)) {
+    headers["Content-Type"] = "application/json";
+  }
   if (token) headers["Authorization"] = `Bearer ${token}`;
 
   const res = await fetch(url.toString(), { ...init, headers });
@@ -161,4 +164,14 @@ export const beauticianApi = {
       method: "POST",
       body: JSON.stringify({ documents }),
     }),
+  uploadKycDocuments: (files: { idFile?: File | null; selfieFile?: File | null; expFile?: File | null }) => {
+    const formData = new FormData();
+    if (files.idFile) formData.append("aadhar", files.idFile);
+    if (files.selfieFile) formData.append("selfie", files.selfieFile);
+    if (files.expFile) formData.append("experience", files.expFile);
+    return request<{ documents: Array<{ type: string; url: string }> }>("/beautician/kyc/upload", {
+      method: "POST",
+      body: formData,
+    });
+  },
 };

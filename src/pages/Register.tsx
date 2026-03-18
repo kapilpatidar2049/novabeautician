@@ -29,7 +29,7 @@ export default function Register() {
         name: name.trim(),
         email: email.trim(),
         password,
-        phone: phone.trim() || undefined,
+        phone: phone.trim(),
       });
       if (res.success) {
         setSuccess("Registration submitted. Admin will approve your account. You can then log in.");
@@ -75,6 +75,19 @@ export default function Register() {
 
           <div className="relative">
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <Phone className="w-4 h-4" />
+            </div>
+            <Input
+              type="tel"
+              placeholder="Phone"
+              className="pl-10"
+              value={phone}
+              onChange={(e) => setPhone(e.target.value)}
+            />
+          </div>
+
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               <Mail className="w-4 h-4" />
             </div>
             <Input
@@ -96,19 +109,6 @@ export default function Register() {
               className="pl-10"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-            />
-          </div>
-
-          <div className="relative">
-            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
-              <Phone className="w-4 h-4" />
-            </div>
-            <Input
-              type="tel"
-              placeholder="Phone (optional)"
-              className="pl-10"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
             />
           </div>
 
