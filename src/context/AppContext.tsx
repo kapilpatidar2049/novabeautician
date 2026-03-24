@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
+import { toast } from 'sonner';
 import { Appointment, BeauticianProfile, Notification, JobStatus } from '@/types';
 import { beauticianApi, authApi, setAuthTokens, clearAuth, setUser, getUser, type ApiAppointment, type ApiKycStatus, type ApiKycDocument } from '@/lib/api';
 import { getFCMToken, isFirebaseConfigured, onFCMMessage } from '@/lib/firebase';
@@ -6,6 +7,9 @@ import alertSound from '@/alert.mp3';
 
 function mapApiAppointmentToAppointment(item: ApiAppointment): Appointment {
   const [lng, lat] = item.location?.coordinates ?? [72.83, 19.06];
+  const needsBeauticianRating =
+    item.status === 'completed' &&
+    !(item.ratingFromBeautician && item.ratingFromBeautician.stars != null);
   return {
     id: item._id,
     customer: {
@@ -28,6 +32,9 @@ function mapApiAppointmentToAppointment(item: ApiAppointment): Appointment {
     status: item.status as JobStatus,
     totalAmount: item.price,
     notes: item.notes,
+    ratingFromCustomer: item.ratingFromCustomer,
+    ratingFromBeautician: item.ratingFromBeautician,
+    needsBeauticianRating,
   };
 }
 
@@ -42,7 +49,7 @@ interface AppContextType {
   setActiveAppointment: React.Dispatch<React.SetStateAction<Appointment | null>>;
   isLocationSharing: boolean;
   setIsLocationSharing: React.Dispatch<React.SetStateAction<boolean>>;
-  updateAppointmentStatus: (appointmentId: string, status: JobStatus) => Promise<void>;
+  updateAppointmentStatus: (appointmentId: string, status: JobStatus) => Promise<boolean>;
   toggleOnlineStatus: () => void;
   markNotificationRead: (notificationId: string) => void;
   isLoggedIn: boolean;
@@ -258,7 +265,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setActiveAppointment(null);
   };
 
-  const updateAppointmentStatus = async (appointmentId: string, status: JobStatus) => {
+  const updateAppointmentStatus = async (appointmentId: string, status: JobStatus): Promise<boolean> => {
     try {
       if (status === 'accepted') {
         await beauticianApi.acceptAppointment(appointmentId);
@@ -276,8 +283,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         setIsLocationSharing(false);
         setActiveAppointment(null);
       }
-    } catch {
-      // ignore
+      return true;
+    } catch (e) {
+      toast.error(e instanceof Error ? e.message : 'Action failed');
+      return false;
     }
   };
 

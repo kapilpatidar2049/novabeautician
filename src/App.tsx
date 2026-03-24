@@ -9,6 +9,7 @@ import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Appointments from "./pages/Appointments";
 import AppointmentDetail from "./pages/AppointmentDetail";
+import RateCustomer from "./pages/RateCustomer";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
 import EditProfile from "./pages/EditProfile";
@@ -47,6 +48,7 @@ const App = () => (
               <Route path="/kyc" element={<ProtectedRoute><KycStatus /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/appointments" element={<ProtectedRoute><Appointments /></ProtectedRoute>} />
+              <Route path="/appointment/:id/rate-customer" element={<ProtectedRoute><RateCustomer /></ProtectedRoute>} />
               <Route path="/appointment/:id" element={<ProtectedRoute><AppointmentDetail /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

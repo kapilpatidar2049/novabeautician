@@ -130,6 +130,8 @@ export interface ApiAppointment {
   price: number;
   notes?: string;
   location?: { coordinates: [number, number] };
+  ratingFromCustomer?: { stars: number; comment?: string; createdAt?: string } | null;
+  ratingFromBeautician?: { stars: number; comment?: string; createdAt?: string } | null;
 }
 
 export interface ApiKycDocument {
@@ -158,6 +160,13 @@ export const beauticianApi = {
     request<ApiAppointment>(`/beautician/appointments/${id}/start`, { method: "PUT" }),
   completeAppointment: (id: string) =>
     request<ApiAppointment>(`/beautician/appointments/${id}/complete`, { method: "PUT" }),
+  getPendingRatings: () =>
+    request<{ items: ApiAppointment[] }>("/beautician/appointments/pending-ratings"),
+  rateCustomer: (appointmentId: string, body: { stars: number; comment?: string }) =>
+    request<ApiAppointment>(`/beautician/appointments/${appointmentId}/rate-customer`, {
+      method: "POST",
+      body: JSON.stringify(body),
+    }),
   updateLocation: (body: { appointmentId: string; lat: number; lng: number }) =>
     request("/beautician/location/update", { method: "POST", body: JSON.stringify(body) }),
   setAvailability: (isAvailable: boolean) =>

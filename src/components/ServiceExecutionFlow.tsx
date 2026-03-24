@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { CheckCircle2, Circle, MapPin, Play, Package, Flag } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Appointment, JobStatus, ProductUsage } from '@/types';
@@ -19,6 +20,7 @@ const flowSteps: { status: JobStatus; label: string; icon: React.ElementType }[]
 
 export function ServiceExecutionFlow({ appointment }: ServiceExecutionFlowProps) {
   const { updateAppointmentStatus } = useApp();
+  const navigate = useNavigate();
   const [showProductModal, setShowProductModal] = useState(false);
   const [productsUsed, setProductsUsed] = useState<ProductUsage[]>([]);
 
@@ -36,25 +38,33 @@ export function ServiceExecutionFlow({ appointment }: ServiceExecutionFlowProps)
       if (nextStep.status === 'completed') {
         setShowProductModal(true);
       } else {
-        updateAppointmentStatus(appointment.id, nextStep.status);
+        void updateAppointmentStatus(appointment.id, nextStep.status);
       }
     }
   };
 
-  const handleCompleteWithProducts = (products: ProductUsage[]) => {
+  const handleCompleteWithProducts = async (products: ProductUsage[]) => {
     setProductsUsed(products);
     setShowProductModal(false);
-    updateAppointmentStatus(appointment.id, 'completed');
+    const ok = await updateAppointmentStatus(appointment.id, 'completed');
+    if (ok) {
+      navigate(`/appointment/${appointment.id}/rate-customer`);
+    }
   };
 
   if (appointment.status === 'completed') {
     return (
-      <div className="bg-success/10 border border-success/30 rounded-xl p-6 text-center">
+      <div className="bg-success/10 border border-success/30 rounded-xl p-6 text-center space-y-4">
         <CheckCircle2 className="w-12 h-12 text-success mx-auto mb-3" />
         <h3 className="font-semibold text-success text-lg">Service Completed!</h3>
         <p className="text-sm text-muted-foreground mt-1">
           Great job! Payment will be processed shortly.
         </p>
+        {appointment.needsBeauticianRating && (
+          <Button className="w-full" onClick={() => navigate(`/appointment/${appointment.id}/rate-customer`)}>
+            Rate customer (required)
+          </Button>
+        )}
       </div>
     );
   }

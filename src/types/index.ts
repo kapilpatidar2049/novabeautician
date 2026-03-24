@@ -27,6 +27,11 @@ export interface ProductUsage {
   unit: string;
 }
 
+export interface AppointmentRatingSnippet {
+  stars: number;
+  comment?: string;
+}
+
 export interface Appointment {
   id: string;
   customer: Customer;
@@ -38,6 +43,10 @@ export interface Appointment {
   productsUsed?: ProductUsage[];
   startedAt?: Date;
   completedAt?: Date;
+  ratingFromCustomer?: AppointmentRatingSnippet | null;
+  ratingFromBeautician?: AppointmentRatingSnippet | null;
+  /** True when service is completed but this user (beautician) has not rated the customer yet */
+  needsBeauticianRating?: boolean;
 }
 
 export interface BeauticianProfile {
