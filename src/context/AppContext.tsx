@@ -61,6 +61,7 @@ interface AppContextType {
   refreshAppointments: () => Promise<void>;
   kyc: ApiKycStatus | null;
   refreshKyc: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
   updateProfile: (payload: { name?: string; phone?: string }) => Promise<{ ok: boolean; error?: string }>;
 }
 
@@ -113,6 +114,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           name: res.data?.name || b.name,
           phone: res.data?.phone || b.phone,
           city: cityValue || b.city || '',
+          profileImageUrl: res.data.profileImageUrl ?? null,
         }));
       }
     } catch {
@@ -329,6 +331,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         refreshAppointments,
         kyc,
         refreshKyc,
+        refreshProfile,
         updateProfile,
       }}
     >

@@ -112,7 +112,27 @@ export const authApi = {
       body: JSON.stringify(body),
     }),
   getProfile: () =>
-    request<{ _id: string; name: string; email: string; phone?: string; city?: string | { _id: string; name?: string } }>("/auth/profile"),
+    request<{
+      _id: string;
+      name: string;
+      email: string;
+      phone?: string;
+      city?: string | { _id: string; name?: string };
+      profileImage?: string;
+      profileImageUrl?: string | null;
+    }>("/auth/profile"),
+  uploadProfileImage: (file: File) => {
+    const formData = new FormData();
+    formData.append("image", file);
+    return request<{
+      _id: string;
+      name: string;
+      email: string;
+      phone?: string;
+      profileImage?: string;
+      profileImageUrl?: string | null;
+    }>("/auth/profile-image", { method: "POST", body: formData });
+  },
   updateProfile: (body: { name?: string; phone?: string }) =>
     request<{ _id: string; name: string; email: string; phone?: string }>("/auth/update-profile", {
       method: "PUT",

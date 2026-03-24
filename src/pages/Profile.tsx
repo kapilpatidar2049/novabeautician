@@ -15,7 +15,7 @@ import {
 import { useApp } from '@/context/AppContext';
 import { BottomNav } from '@/components/BottomNav';
 import { OnlineToggle } from '@/components/OnlineToggle';
-import { Avatar, AvatarFallback } from '@/components/ui/avatar';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 
@@ -50,6 +50,9 @@ export default function Profile() {
       <div className="gradient-primary px-4 pt-6 pb-8 rounded-b-3xl">
         <div className="flex items-center gap-4 mb-6">
           <Avatar className="w-16 h-16 border-2 border-primary-foreground/30">
+            {beautician.profileImageUrl ? (
+              <AvatarImage src={beautician.profileImageUrl} alt="" className="object-cover" />
+            ) : null}
             <AvatarFallback className="bg-primary-foreground text-primary text-xl font-bold">
               {beautician.name.charAt(0)}
             </AvatarFallback>

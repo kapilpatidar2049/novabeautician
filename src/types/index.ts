@@ -54,6 +54,8 @@ export interface BeauticianProfile {
   name: string;
   phone: string;
   avatar?: string;
+  /** Full URL from API after profile photo upload */
+  profileImageUrl?: string | null;
   city: string;
   isOnline: boolean;
   rating: number;
