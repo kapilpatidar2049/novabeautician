@@ -102,19 +102,37 @@ export default function Profile() {
         <div className="bg-card rounded-xl shadow-card border border-border overflow-hidden">
           {menuItems.map((item, index) => (
             <div key={item.label}>
-              <button onClick={item.action} className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
-                    <item.icon className="w-5 h-5 text-primary" />
+              {item.action ? (
+                <button
+                  type="button"
+                  onClick={() => item.action?.()}
+                  className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                      <item.icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <span className="font-medium text-foreground">{item.label}</span>
                   </div>
-                  <span className="font-medium text-foreground">{item.label}</span>
+                  {item.value ? (
+                    <span className="font-semibold text-foreground">{item.value}</span>
+                  ) : (
+                    item.chevron && <ChevronRight className="w-5 h-5 text-muted-foreground" />
+                  )}
+                </button>
+              ) : (
+                <div className="w-full flex items-center justify-between p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
+                      <item.icon className="w-5 h-5 text-primary" />
+                    </div>
+                    <span className="font-medium text-foreground">{item.label}</span>
+                  </div>
+                  {item.value != null && (
+                    <span className="font-semibold text-foreground">{item.value}</span>
+                  )}
                 </div>
-                {item.value ? (
-                  <span className="font-semibold text-foreground">{item.value}</span>
-                ) : (
-                  item.chevron && <ChevronRight className="w-5 h-5 text-muted-foreground" />
-                )}
-              </button>
+              )}
               {index < menuItems.length - 1 && <Separator />}
             </div>
           ))}
