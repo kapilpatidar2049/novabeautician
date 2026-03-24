@@ -4,11 +4,13 @@ import {
   LogOut,
   MapPin,
   Star,
-  Briefcase,
   IndianRupee,
   HelpCircle,
   FileText,
   Shield,
+  UserCog,
+  Building2,
+  Wallet,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { BottomNav } from '@/components/BottomNav';
@@ -27,10 +29,14 @@ export default function Profile() {
     .reduce((sum, a) => sum + a.totalAmount, 0);
 
   const menuItems = [
+    { icon: UserCog, label: 'Edit Profile', chevron: true, action: () => navigate('/profile/edit') },
+    { icon: Building2, label: 'Bank Details', chevron: true, action: () => navigate('/profile/bank-details') },
+    { icon: IndianRupee, label: 'Payments & Payouts', chevron: true, action: () => navigate('/profile/payments') },
     { icon: IndianRupee, label: 'Earnings', value: `₹${thisMonthEarnings.toLocaleString()}` },
-    { icon: FileText, label: 'Documents', chevron: true },
-    { icon: Shield, label: 'Privacy & Security', chevron: true },
-    { icon: HelpCircle, label: 'Help & Support', chevron: true },
+    { icon: FileText, label: 'Documents', chevron: true, action: () => navigate('/profile/documents') },
+    { icon: Shield, label: 'Privacy & Security', chevron: true, action: () => navigate('/profile/privacy-security') },
+    { icon: HelpCircle, label: 'Help & Support', chevron: true, action: () => navigate('/profile/help-support') },
+    { icon: Wallet, label: 'Wallet Balance', value: 'Track in Payments' },
   ];
 
   const handleLogout = () => {
@@ -73,7 +79,7 @@ export default function Profile() {
             <div className="flex items-center justify-center gap-1">
               <MapPin className="w-4 h-4 text-primary" />
             </div>
-            <p className="text-xs text-muted-foreground">{beautician.city}</p>
+            <p className="text-xs text-muted-foreground">{beautician.city || 'City not set'}</p>
           </div>
         </div>
       </div>
@@ -96,7 +102,7 @@ export default function Profile() {
         <div className="bg-card rounded-xl shadow-card border border-border overflow-hidden">
           {menuItems.map((item, index) => (
             <div key={item.label}>
-              <button className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors">
+              <button onClick={item.action} className="w-full flex items-center justify-between p-4 hover:bg-secondary/50 transition-colors">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-secondary flex items-center justify-center">
                     <item.icon className="w-5 h-5 text-primary" />

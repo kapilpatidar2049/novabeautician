@@ -11,6 +11,12 @@ import Appointments from "./pages/Appointments";
 import AppointmentDetail from "./pages/AppointmentDetail";
 import Notifications from "./pages/Notifications";
 import Profile from "./pages/Profile";
+import EditProfile from "./pages/EditProfile";
+import BankDetails from "./pages/BankDetails";
+import DocumentsPage from "./pages/DocumentsPage";
+import PrivacySecurity from "./pages/PrivacySecurity";
+import HelpSupport from "./pages/HelpSupport";
+import PaymentsPayouts from "./pages/PaymentsPayouts";
 import NotFound from "./pages/NotFound";
 import KycStatus from "./pages/KycStatus";
 
@@ -44,6 +50,12 @@ const App = () => (
               <Route path="/appointment/:id" element={<ProtectedRoute><AppointmentDetail /></ProtectedRoute>} />
               <Route path="/notifications" element={<ProtectedRoute><Notifications /></ProtectedRoute>} />
               <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/profile/edit" element={<ProtectedRoute><EditProfile /></ProtectedRoute>} />
+              <Route path="/profile/bank-details" element={<ProtectedRoute><BankDetails /></ProtectedRoute>} />
+              <Route path="/profile/documents" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
+              <Route path="/profile/privacy-security" element={<ProtectedRoute><PrivacySecurity /></ProtectedRoute>} />
+              <Route path="/profile/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
+              <Route path="/profile/payments" element={<ProtectedRoute><PaymentsPayouts /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

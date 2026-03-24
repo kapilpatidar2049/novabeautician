@@ -17,8 +17,8 @@ export default function Register() {
   const [success, setSuccess] = useState("");
 
   const handleSubmit = async () => {
-    if (!name.trim() || !email.trim() || !password) {
-      setError("Please fill all required fields (name, email, password).");
+    if (!name.trim() || !email.trim() || !password || !city.trim()) {
+      setError("Please fill all required fields (name, email, password, city).");
       return;
     }
     setError("");
@@ -32,6 +32,7 @@ export default function Register() {
         phone: phone.trim(),
       });
       if (res.success) {
+        localStorage.setItem("beautician_city_hint", city.trim());
         setSuccess("Registration submitted. Admin will approve your account. You can then log in.");
       } else {
         setError((res as { message?: string }).message || "Registration failed.");
@@ -116,16 +117,12 @@ export default function Register() {
             <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               <MapPin className="w-4 h-4" />
             </div>
-            <select
-              className="pl-10 pr-3 py-2 w-full rounded-md border border-input bg-background text-sm text-foreground"
+            <Input
+              placeholder="City (required)"
+              className="pl-10"
               value={city}
               onChange={(e) => setCity(e.target.value)}
-            >
-              <option value="">Select city (optional)</option>
-              <option value="Indore">Indore</option>
-              <option value="Bhopal">Bhopal</option>
-              <option value="Ujjain">Ujjain</option>
-            </select>
+            />
           </div>
         </div>
 

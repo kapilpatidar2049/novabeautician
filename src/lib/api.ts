@@ -97,18 +97,25 @@ export const authApi = {
   sendOtp: (phone: string, fcmToken?: string | null) =>
     request<{ sent: boolean }>("/auth/send-otp", {
       method: "POST",
-      body: JSON.stringify({ phone, ...(fcmToken ? { fcmToken } : {}) }),
+      body: JSON.stringify({ phone, role: "beautician", ...(fcmToken ? { fcmToken } : {}) }),
     }),
   verifyOtp: (phone: string, otp: string) =>
     request<{
       user: { id: string; name: string; email: string; role: string; phone?: string };
       tokens: { accessToken: string; refreshToken: string };
-    }>("/auth/verify-otp", { method: "POST", body: JSON.stringify({ phone, otp }) }),
+    }>("/auth/verify-otp", { method: "POST", body: JSON.stringify({ phone, otp, role: "beautician" }) }),
   registerFcmToken: (token: string) =>
     request("/auth/fcm-token", { method: "POST", body: JSON.stringify({ token }) }),
   registerBeautician: (body: { name: string; email: string; password: string; phone?: string }) =>
     request<{ user: { id: string; name: string; email: string; phone?: string; role: string; isActive: boolean } }>("/auth/register-beautician", {
       method: "POST",
+      body: JSON.stringify(body),
+    }),
+  getProfile: () =>
+    request<{ _id: string; name: string; email: string; phone?: string; city?: string | { _id: string; name?: string } }>("/auth/profile"),
+  updateProfile: (body: { name?: string; phone?: string }) =>
+    request<{ _id: string; name: string; email: string; phone?: string }>("/auth/update-profile", {
+      method: "PUT",
       body: JSON.stringify(body),
     }),
 };

@@ -106,7 +106,7 @@ export default function Login() {
           <Sparkles className="w-10 h-10 text-primary-foreground" />
         </div>
 
-        <h1 className="text-2xl font-bold text-foreground mb-2">GlamGo Partner</h1>
+        <h1 className="text-2xl font-bold text-foreground mb-2">Nova Beauty Partner</h1>
         <p className="text-muted-foreground text-center mb-6">
           {mode === 'phone' ? 'Sign in with your mobile number' : 'Sign in with email'}
         </p>

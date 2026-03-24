@@ -54,6 +54,7 @@ interface AppContextType {
   refreshAppointments: () => Promise<void>;
   kyc: ApiKycStatus | null;
   refreshKyc: () => Promise<void>;
+  updateProfile: (payload: { name?: string; phone?: string }) => Promise<{ ok: boolean; error?: string }>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -62,7 +63,7 @@ const defaultBeauticianProfile = (savedUser: { name: string; phone?: string } | 
   id: '',
   name: savedUser?.name ?? '',
   phone: savedUser?.phone ?? '',
-  city: '',
+  city: localStorage.getItem('beautician_city_hint') || '',
   isOnline: true,
   rating: 0,
   totalJobs: 0,
@@ -93,6 +94,25 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const refreshProfile = useCallback(async () => {
+    try {
+      const res = await authApi.getProfile();
+      if (res.success && res.data) {
+        const cityValue = typeof res.data.city === 'string'
+          ? res.data.city
+          : res.data.city?.name || '';
+        setBeautician((b) => ({
+          ...b,
+          name: res.data?.name || b.name,
+          phone: res.data?.phone || b.phone,
+          city: cityValue || b.city || '',
+        }));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   const refreshKyc = useCallback(async () => {
     try {
       const res = await beauticianApi.getKyc();
@@ -106,10 +126,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     if (isLoggedIn) {
+      refreshProfile();
       refreshAppointments();
       refreshKyc();
     }
-  }, [isLoggedIn, refreshAppointments, refreshKyc]);
+  }, [isLoggedIn, refreshAppointments, refreshKyc, refreshProfile]);
 
   useEffect(() => {
     if (!isLoggedIn || !isFirebaseConfigured()) return;
@@ -123,6 +144,24 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!isLoggedIn || !isFirebaseConfigured()) return;
     const unsubscribe = onFCMMessage((payload) => {
       const type = payload.data?.type;
+      const notificationType = type === 'appointment_created'
+        ? 'new_job'
+        : type?.includes('payment')
+          ? 'payment'
+          : type?.includes('delay')
+            ? 'delay_alert'
+            : 'general';
+      setNotifications((prev) => ([
+        {
+          id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          type: notificationType,
+          title: payload.notification?.title || 'Update',
+          message: payload.notification?.body || 'You have a new update.',
+          timestamp: new Date(),
+          read: false,
+        },
+        ...prev,
+      ]));
       if (type === 'appointment_created') {
         const audio = new Audio(alertSound);
         audio.play().catch(() => {});
@@ -143,8 +182,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         setAuthTokens(tokens.accessToken, tokens.refreshToken);
         setUser({ id: user.id, name: user.name, email: user.email, phone: user.phone });
-        setBeautician((b) => ({ ...b, name: user.name }));
+        setBeautician((b) => ({ ...b, name: user.name, phone: user.phone || b.phone }));
         setIsLoggedIn(true);
+        await refreshProfile();
         await refreshKyc();
         return { ok: true };
       }
@@ -174,14 +214,40 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
         setAuthTokens(tokens.accessToken, tokens.refreshToken);
         setUser({ id: user.id, name: user.name, email: user.email, phone: user.phone });
-        setBeautician((b) => ({ ...b, name: user.name }));
+        setBeautician((b) => ({ ...b, name: user.name, phone: user.phone || b.phone }));
         setIsLoggedIn(true);
+        await refreshProfile();
         await refreshKyc();
         return { ok: true };
       }
       return { ok: false, error: (res as { message?: string }).message || 'Verification failed' };
     } catch (e) {
       return { ok: false, error: e instanceof Error ? e.message : 'Verification failed' };
+    }
+  };
+
+  const updateProfile = async (payload: { name?: string; phone?: string }) => {
+    try {
+      const res = await authApi.updateProfile(payload);
+      if (res.success && res.data) {
+        setBeautician((prev) => ({
+          ...prev,
+          name: res.data?.name || prev.name,
+          phone: res.data?.phone || prev.phone,
+        }));
+        const existing = getUser();
+        if (existing) {
+          setUser({
+            ...existing,
+            name: res.data?.name || existing.name,
+            phone: res.data?.phone || existing.phone,
+          });
+        }
+        return { ok: true };
+      }
+      return { ok: false, error: (res as { message?: string }).message || 'Unable to update profile' };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'Unable to update profile' };
     }
   };
 
@@ -254,6 +320,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         refreshAppointments,
         kyc,
         refreshKyc,
+        updateProfile,
       }}
     >
       {children}

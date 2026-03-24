@@ -76,8 +76,8 @@ export default function Dashboard() {
               <MapPin className="w-5 h-5 text-primary" />
             </div>
             <div>
-              <p className="text-sm font-medium text-foreground">{beautician.city}</p>
-              <p className="text-xs text-muted-foreground">Working Area</p>
+              <p className="text-sm font-medium text-foreground">{beautician.city || 'City not set'}</p>
+              <p className="text-xs text-muted-foreground">Working Area (service city)</p>
             </div>
           </div>
           <div className="flex items-center gap-1 bg-warning/15 text-warning px-3 py-1.5 rounded-full">
