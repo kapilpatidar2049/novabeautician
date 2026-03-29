@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, Save, Camera } from 'lucide-react';
 import { toast } from 'sonner';
@@ -10,12 +10,39 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
 export default function EditProfile() {
   const navigate = useNavigate();
-  const { beautician, updateProfile } = useApp();
+  const { beautician, updateProfile, refreshProfile } = useApp();
   const [name, setName] = useState(beautician.name);
   const [phone, setPhone] = useState(beautician.phone);
   const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    setName(beautician.name);
+    setPhone(beautician.phone);
+  }, [beautician.name, beautician.phone]);
+
+  const handlePhoto = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    e.target.value = '';
+    if (!file) return;
+    setUploading(true);
+    try {
+      const res = await authApi.uploadProfileImage(file);
+      if (res.success && res.data) {
+        toast.success('Photo updated');
+        await refreshProfile();
+      } else {
+        toast.error((res as { message?: string }).message || 'Upload failed');
+      }
+    } catch (err) {
+      toast.error(err instanceof Error ? err.message : 'Upload failed');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleSave = async () => {
     if (!name.trim()) {
@@ -34,10 +61,17 @@ export default function EditProfile() {
     }
   };
 
+  const avatarUrl = beautician.profileImageUrl ?? undefined;
+  const initial = (name.trim().charAt(0) || beautician.name?.charAt(0) || '?').toUpperCase();
+
   return (
     <div className="min-h-screen bg-background p-4">
       <div className="flex items-center gap-3 mb-6">
-        <button onClick={() => navigate('/profile')} className="w-9 h-9 rounded-full bg-card shadow-card flex items-center justify-center">
+        <button
+          type="button"
+          onClick={() => navigate('/profile')}
+          className="w-9 h-9 rounded-full bg-card shadow-card flex items-center justify-center"
+        >
           <ArrowLeft className="w-5 h-5 text-foreground" />
         </button>
         <h1 className="text-xl font-bold text-foreground">Edit Profile</h1>
@@ -47,10 +81,22 @@ export default function EditProfile() {
         <div className="flex flex-col items-center gap-2">
           <Avatar className="w-24 h-24 border-2 border-border">
             {avatarUrl ? <AvatarImage src={avatarUrl} alt="" className="object-cover" /> : null}
-            <AvatarFallback className="text-2xl font-bold">{name.charAt(0) || '?'}</AvatarFallback>
+            <AvatarFallback className="text-2xl font-bold">{initial}</AvatarFallback>
           </Avatar>
-          <input ref={fileInputRef} type="file" accept="image/*" className="hidden" onChange={handlePhoto} />
-          <Button type="button" variant="outline" size="sm" disabled={uploading} onClick={() => fileInputRef.current?.click()}>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handlePhoto}
+          />
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            disabled={uploading}
+            onClick={() => fileInputRef.current?.click()}
+          >
             <Camera className="w-4 h-4 mr-2" />
             {uploading ? 'Uploading…' : 'Change photo'}
           </Button>
@@ -65,7 +111,7 @@ export default function EditProfile() {
         </div>
         <div>
           <p className="text-sm text-muted-foreground mb-1">Working City</p>
-          <Input value={beautician.city || 'City not set'} disabled />
+          <Input value={beautician.city || 'City not set'} disabled readOnly />
           <p className="text-xs text-muted-foreground mt-1">City is managed by admin for service assignment.</p>
         </div>
 
