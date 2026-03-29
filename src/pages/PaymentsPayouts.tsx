@@ -1,14 +1,31 @@
+import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, IndianRupee, Wallet, CalendarClock } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
+import { authApi } from '@/lib/api';
 
 export default function PaymentsPayouts() {
   const navigate = useNavigate();
   const { appointments } = useApp();
+  const [beauticianCommissionPercent, setBeauticianCommissionPercent] = useState(10);
+
+  useEffect(() => {
+    authApi
+      .getCommissionSettings()
+      .then((res) => {
+        if (res.success && res.data != null) {
+          setBeauticianCommissionPercent(res.data.beauticianCommissionPercent);
+        }
+      })
+      .catch(() => {
+        /* keep default */
+      });
+  }, []);
 
   const completed = appointments.filter((a) => a.status === 'completed');
   const grossEarnings = completed.reduce((sum, a) => sum + a.totalAmount, 0);
-  const platformFee = Math.round(grossEarnings * 0.1);
+  const rate = beauticianCommissionPercent / 100;
+  const platformFee = Math.round(grossEarnings * rate);
   const estimatedPayout = grossEarnings - platformFee;
 
   return (
@@ -34,7 +51,9 @@ export default function PaymentsPayouts() {
             Estimated Payout
           </div>
           <p className="text-2xl font-bold text-success">₹{estimatedPayout.toLocaleString()}</p>
-          <p className="text-xs text-muted-foreground mt-1">Platform fee (10%): ₹{platformFee.toLocaleString()}</p>
+          <p className="text-xs text-muted-foreground mt-1">
+            Platform fee ({beauticianCommissionPercent}%): ₹{platformFee.toLocaleString()}
+          </p>
         </div>
         <div className="bg-card rounded-xl border border-border shadow-card p-4">
           <div className="flex items-center gap-2 text-muted-foreground text-sm mb-1">

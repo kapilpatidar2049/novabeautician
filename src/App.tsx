@@ -18,6 +18,7 @@ import DocumentsPage from "./pages/DocumentsPage";
 import PrivacySecurity from "./pages/PrivacySecurity";
 import HelpSupport from "./pages/HelpSupport";
 import PaymentsPayouts from "./pages/PaymentsPayouts";
+import Referral from "./pages/Referral";
 import NotFound from "./pages/NotFound";
 import KycStatus from "./pages/KycStatus";
 
@@ -58,6 +59,7 @@ const App = () => (
               <Route path="/profile/privacy-security" element={<ProtectedRoute><PrivacySecurity /></ProtectedRoute>} />
               <Route path="/profile/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
               <Route path="/profile/payments" element={<ProtectedRoute><PaymentsPayouts /></ProtectedRoute>} />
+              <Route path="/profile/referral" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>
           </div>

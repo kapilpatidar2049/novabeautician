@@ -1,12 +1,13 @@
-import { useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Mail, Lock, Phone, User as UserIcon, MapPin } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
+import { ArrowLeft, Mail, Lock, Phone, User as UserIcon, MapPin, Gift } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { authApi } from "@/lib/api";
 
 export default function Register() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -15,6 +16,15 @@ export default function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
+  const [referralCode, setReferralCode] = useState("");
+
+  useEffect(() => {
+    const ref = searchParams.get("ref") || sessionStorage.getItem("referralCode") || "";
+    if (ref) {
+      setReferralCode(ref.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16));
+      sessionStorage.setItem("referralCode", ref);
+    }
+  }, [searchParams]);
 
   const handleSubmit = async () => {
     if (!name.trim() || !email.trim() || !password || !city.trim()) {
@@ -25,11 +35,13 @@ export default function Register() {
     setSuccess("");
     setLoading(true);
     try {
+      const ref = referralCode.replace(/\s/g, "").trim();
       const res = await authApi.registerBeautician({
         name: name.trim(),
         email: email.trim(),
         password,
         phone: phone.trim(),
+        ...(ref ? { referralCode: ref } : {}),
       });
       if (res.success) {
         localStorage.setItem("beautician_city_hint", city.trim());
@@ -110,6 +122,18 @@ export default function Register() {
               className="pl-10"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+            />
+          </div>
+
+          <div className="relative">
+            <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+              <Gift className="w-4 h-4" />
+            </div>
+            <Input
+              placeholder="Referral code (optional)"
+              className="pl-10"
+              value={referralCode}
+              onChange={(e) => setReferralCode(e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, "").slice(0, 16))}
             />
           </div>
 

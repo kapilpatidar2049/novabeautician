@@ -11,6 +11,7 @@ import {
   UserCog,
   Building2,
   Wallet,
+  Gift,
 } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
 import { BottomNav } from '@/components/BottomNav';
@@ -30,6 +31,7 @@ export default function Profile() {
 
   const menuItems = [
     { icon: UserCog, label: 'Edit Profile', chevron: true, action: () => navigate('/profile/edit') },
+    { icon: Gift, label: 'Refer & earn', chevron: true, action: () => navigate('/profile/referral') },
     { icon: Building2, label: 'Bank Details', chevron: true, action: () => navigate('/profile/bank-details') },
     { icon: IndianRupee, label: 'Payments & Payouts', chevron: true, action: () => navigate('/profile/payments') },
     { icon: IndianRupee, label: 'Earnings', value: `₹${thisMonthEarnings.toLocaleString()}` },

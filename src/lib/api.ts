@@ -88,7 +88,15 @@ async function refreshToken(): Promise<boolean> {
   return false;
 }
 
+export interface ApiPlatformCommissionSettings {
+  beauticianCommissionPercent: number;
+  vendorCommissionPercent: number;
+  updatedAt?: string;
+}
+
 export const authApi = {
+  /** Public: platform commission rates (no auth required). */
+  getCommissionSettings: () => request<ApiPlatformCommissionSettings>("/auth/commission-settings"),
   login: (email: string, password: string) =>
     request<{
       user: { id: string; name: string; email: string; role: string; phone?: string };
@@ -106,7 +114,13 @@ export const authApi = {
     }>("/auth/verify-otp", { method: "POST", body: JSON.stringify({ phone, otp, role: "beautician" }) }),
   registerFcmToken: (token: string) =>
     request("/auth/fcm-token", { method: "POST", body: JSON.stringify({ token }) }),
-  registerBeautician: (body: { name: string; email: string; password: string; phone?: string }) =>
+  registerBeautician: (body: {
+    name: string;
+    email: string;
+    password: string;
+    phone?: string;
+    referralCode?: string;
+  }) =>
     request<{ user: { id: string; name: string; email: string; phone?: string; role: string; isActive: boolean } }>("/auth/register-beautician", {
       method: "POST",
       body: JSON.stringify(body),
@@ -206,6 +220,14 @@ export const beauticianApi = {
       method: "POST",
       body: JSON.stringify({ documents }),
     }),
+  getReferral: () =>
+    request<{
+      referralCode: string | null;
+      isEnabled: boolean;
+      customerRewardAmount: number;
+      beauticianRewardAmount: number;
+      shareMessage: string;
+    }>("/beautician/referral"),
   uploadKycDocuments: (files: { idFile?: File | null; selfieFile?: File | null; expFile?: File | null }) => {
     const formData = new FormData();
     if (files.idFile) formData.append("aadhar", files.idFile);
