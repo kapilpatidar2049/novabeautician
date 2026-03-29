@@ -5,6 +5,21 @@ import { beauticianApi, authApi, setAuthTokens, clearAuth, setUser, getUser, typ
 import { getFCMToken, isFirebaseConfigured, onFCMMessage } from '@/lib/firebase';
 import alertSound from '@/alert.mp3';
 
+/** Show city name from populated API object; never show raw ObjectId string. */
+function cityDisplayName(city: unknown): string {
+  if (city == null) return '';
+  if (typeof city === 'object' && city !== null && 'name' in city) {
+    const n = (city as { name?: string }).name;
+    return typeof n === 'string' ? n.trim() : '';
+  }
+  if (typeof city === 'string') {
+    const s = city.trim();
+    if (/^[a-fA-F0-9]{24}$/.test(s)) return '';
+    return s;
+  }
+  return '';
+}
+
 function mapApiAppointmentToAppointment(item: ApiAppointment): Appointment {
   const [lng, lat] = item.location?.coordinates ?? [72.83, 19.06];
   const needsBeauticianRating =
@@ -106,9 +121,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     try {
       const res = await authApi.getProfile();
       if (res.success && res.data) {
-        const cityValue = typeof res.data.city === 'string'
-          ? res.data.city
-          : res.data.city?.name || '';
+        const cityValue = cityDisplayName(res.data.city);
         setBeautician((b) => ({
           ...b,
           name: res.data?.name || b.name,

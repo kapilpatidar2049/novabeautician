@@ -180,6 +180,12 @@ export const beauticianApi = {
     request<ApiAppointment>(`/beautician/appointments/${id}/start`, { method: "PUT" }),
   completeAppointment: (id: string) =>
     request<ApiAppointment>(`/beautician/appointments/${id}/complete`, { method: "PUT" }),
+  getInventory: () =>
+    request<{ items: Array<{ _id: string; name: string; sku: string; unit: string; quantity: number }> }>(
+      "/beautician/inventory"
+    ),
+  recordProductUsage: (body: { inventoryItemId: string; quantityUsed: number }) =>
+    request<unknown>("/beautician/product-usage", { method: "POST", body: JSON.stringify(body) }),
   getPendingRatings: () =>
     request<{ items: ApiAppointment[] }>("/beautician/appointments/pending-ratings"),
   rateCustomer: (appointmentId: string, body: { stars: number; comment?: string }) =>

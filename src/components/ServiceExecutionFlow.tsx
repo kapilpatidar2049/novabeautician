@@ -4,6 +4,8 @@ import { CheckCircle2, Circle, MapPin, Play, Package, Flag } from 'lucide-react'
 import { Button } from '@/components/ui/button';
 import { Appointment, JobStatus, ProductUsage } from '@/types';
 import { useApp } from '@/context/AppContext';
+import { beauticianApi } from '@/lib/api';
+import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { ProductUsageModal } from './ProductUsageModal';
 
@@ -22,7 +24,6 @@ export function ServiceExecutionFlow({ appointment }: ServiceExecutionFlowProps)
   const { updateAppointmentStatus } = useApp();
   const navigate = useNavigate();
   const [showProductModal, setShowProductModal] = useState(false);
-  const [productsUsed, setProductsUsed] = useState<ProductUsage[]>([]);
 
   const getStepIndex = (status: JobStatus) => {
     const idx = flowSteps.findIndex(s => s.status === status);
@@ -44,10 +45,20 @@ export function ServiceExecutionFlow({ appointment }: ServiceExecutionFlowProps)
   };
 
   const handleCompleteWithProducts = async (products: ProductUsage[]) => {
-    setProductsUsed(products);
     setShowProductModal(false);
     const ok = await updateAppointmentStatus(appointment.id, 'completed');
     if (ok) {
+      for (const p of products) {
+        if (p.quantity <= 0) continue;
+        try {
+          await beauticianApi.recordProductUsage({
+            inventoryItemId: p.id,
+            quantityUsed: p.quantity,
+          });
+        } catch (e) {
+          toast.error(e instanceof Error ? e.message : `Could not record usage for ${p.name}`);
+        }
+      }
       navigate(`/appointment/${appointment.id}/rate-customer`);
     }
   };

@@ -1,10 +1,11 @@
-import { useState } from 'react';
-import { Plus, Minus, X, Package } from 'lucide-react';
+import { useState, useEffect } from 'react';
+import { Plus, Minus, Package, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { ProductUsage } from '@/types';
+import { beauticianApi } from '@/lib/api';
 
-const AVAILABLE_PRODUCTS: { id: string; name: string; unit: string }[] = [];
+type SelectedWithCap = ProductUsage & { maxStock: number };
 
 interface ProductUsageModalProps {
   open: boolean;
@@ -13,29 +14,75 @@ interface ProductUsageModalProps {
 }
 
 export function ProductUsageModal({ open, onClose, onSubmit }: ProductUsageModalProps) {
-  const [products, setProducts] = useState<ProductUsage[]>([]);
+  const [products, setProducts] = useState<SelectedWithCap[]>([]);
+  const [catalog, setCatalog] = useState<Array<{ id: string; name: string; unit: string; quantity: number }>>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (!open) {
+      setProducts([]);
+      return;
+    }
+    let cancelled = false;
+    setLoading(true);
+    beauticianApi
+      .getInventory()
+      .then((res) => {
+        if (cancelled || !res.success || !res.data?.items) return;
+        setCatalog(
+          res.data.items.map((i) => ({
+            id: i._id,
+            name: i.name,
+            unit: i.unit || 'pcs',
+            quantity: Math.max(0, i.quantity),
+          }))
+        );
+      })
+      .catch(() => {
+        if (!cancelled) setCatalog([]);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [open]);
 
   const addProduct = (productId: string) => {
-    const product = AVAILABLE_PRODUCTS.find((p) => p.id === productId);
-    if (product && !products.find((p) => p.id === productId)) {
-      setProducts([...products, { id: product.id, name: product.name, quantity: 1, unit: product.unit }]);
-    }
+    const row = catalog.find((p) => p.id === productId);
+    if (!row || row.quantity < 1 || products.find((p) => p.id === productId)) return;
+    setProducts((prev) => [
+      ...prev,
+      {
+        id: row.id,
+        name: row.name,
+        quantity: 1,
+        unit: row.unit,
+        maxStock: row.quantity,
+      },
+    ]);
   };
 
   const updateQuantity = (productId: string, delta: number) => {
-    setProducts(
-      products
-        .map(p =>
-          p.id === productId ? { ...p, quantity: Math.max(0, p.quantity + delta) } : p
-        )
-        .filter(p => p.quantity > 0)
+    setProducts((prev) =>
+      prev
+        .map((p) => {
+          if (p.id !== productId) return p;
+          const next = p.quantity + delta;
+          const capped = Math.min(Math.max(0, next), p.maxStock);
+          return { ...p, quantity: capped };
+        })
+        .filter((p) => p.quantity > 0)
     );
   };
 
   const handleSubmit = () => {
-    onSubmit(products);
+    onSubmit(products.map(({ id, name, quantity, unit }) => ({ id, name, quantity, unit })));
     setProducts([]);
   };
+
+  const catalogToPick = catalog.filter((p) => p.quantity > 0 && !products.find((s) => s.id === p.id));
 
   return (
     <Dialog open={open} onOpenChange={onClose}>
@@ -48,29 +95,49 @@ export function ProductUsageModal({ open, onClose, onSubmit }: ProductUsageModal
         </DialogHeader>
 
         <div className="space-y-4">
+          {loading && (
+            <div className="flex items-center justify-center gap-2 py-6 text-muted-foreground text-sm">
+              <Loader2 className="w-4 h-4 animate-spin" />
+              Loading salon inventory…
+            </div>
+          )}
+
+          {!loading && catalog.length === 0 && (
+            <p className="text-sm text-muted-foreground text-center py-4">
+              No products in inventory. Ask your vendor to add stock in the vendor panel, or complete without
+              selecting items.
+            </p>
+          )}
+
           {/* Selected Products */}
           {products.length > 0 && (
             <div className="space-y-2">
               <p className="text-sm font-medium text-muted-foreground">Used Products</p>
-              {products.map(product => (
+              {products.map((product) => (
                 <div
                   key={product.id}
                   className="flex items-center justify-between bg-secondary rounded-lg p-3"
                 >
-                  <span className="font-medium text-sm">{product.name}</span>
-                  <div className="flex items-center gap-2">
+                  <div className="min-w-0 pr-2">
+                    <span className="font-medium text-sm block truncate">{product.name}</span>
+                    <span className="text-[10px] text-muted-foreground">Max {product.maxStock}</span>
+                  </div>
+                  <div className="flex items-center gap-2 shrink-0">
                     <button
+                      type="button"
                       onClick={() => updateQuantity(product.id, -1)}
                       className="w-7 h-7 rounded-full bg-card flex items-center justify-center text-muted-foreground hover:text-foreground"
                     >
                       <Minus className="w-4 h-4" />
                     </button>
-                    <span className="w-12 text-center font-semibold">
+                    <span className="w-12 text-center font-semibold text-sm">
                       {product.quantity} {product.unit}
                     </span>
                     <button
+                      type="button"
                       onClick={() => updateQuantity(product.id, 1)}
-                      className="w-7 h-7 rounded-full bg-card flex items-center justify-center text-muted-foreground hover:text-foreground"
+                      disabled={product.quantity >= product.maxStock}
+                      className="w-7 h-7 rounded-full bg-card flex items-center justify-center text-muted-foreground hover:text-foreground disabled:opacity-40"
                     >
                       <Plus className="w-4 h-4" />
                     </button>
@@ -81,12 +148,14 @@ export function ProductUsageModal({ open, onClose, onSubmit }: ProductUsageModal
           )}
 
           {/* Available Products */}
-          <div className="space-y-2">
-            <p className="text-sm font-medium text-muted-foreground">Add Products</p>
-            <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
-              {AVAILABLE_PRODUCTS.filter((p) => !products.find((sp) => sp.id === p.id)).map((product) => (
+          {!loading && catalogToPick.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium text-muted-foreground">Add Products</p>
+              <div className="grid grid-cols-2 gap-2 max-h-48 overflow-y-auto">
+                {catalogToPick.map((product) => (
                   <button
                     key={product.id}
+                    type="button"
                     onClick={() => addProduct(product.id)}
                     className="flex items-center gap-2 p-3 bg-muted rounded-lg text-left hover:bg-muted/80 transition-colors"
                   >
@@ -94,8 +163,9 @@ export function ProductUsageModal({ open, onClose, onSubmit }: ProductUsageModal
                     <span className="text-sm font-medium truncate">{product.name}</span>
                   </button>
                 ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div className="flex gap-3 pt-2">
             <Button variant="outline" onClick={onClose} className="flex-1">
