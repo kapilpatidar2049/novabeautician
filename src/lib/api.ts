@@ -88,15 +88,7 @@ async function refreshToken(): Promise<boolean> {
   return false;
 }
 
-export interface ApiPlatformCommissionSettings {
-  beauticianCommissionPercent: number;
-  vendorCommissionPercent: number;
-  updatedAt?: string;
-}
-
 export const authApi = {
-  /** Public: platform commission rates (no auth required). */
-  getCommissionSettings: () => request<ApiPlatformCommissionSettings>("/auth/commission-settings"),
   login: (email: string, password: string) =>
     request<{
       user: { id: string; name: string; email: string; role: string; phone?: string };
@@ -164,6 +156,7 @@ export interface ApiAppointment {
   price: number;
   notes?: string;
   location?: { coordinates: [number, number] };
+  offerExpiresAt?: string;
   ratingFromCustomer?: { stars: number; comment?: string; createdAt?: string } | null;
   ratingFromBeautician?: { stars: number; comment?: string; createdAt?: string } | null;
 }
@@ -182,6 +175,7 @@ export interface ApiKycStatus {
 }
 
 export const beauticianApi = {
+  getAppointment: (id: string) => request<ApiAppointment>(`/beautician/appointments/${id}`),
   getAppointments: (page = 1, limit = 50, status = "") =>
     request<{ items: ApiAppointment[]; meta: unknown }>("/beautician/appointments", {
       params: { page: String(page), limit: String(limit), status },
@@ -190,8 +184,15 @@ export const beauticianApi = {
     request<ApiAppointment>(`/beautician/appointments/${id}/accept`, { method: "PUT" }),
   rejectAppointment: (id: string) =>
     request<ApiAppointment>(`/beautician/appointments/${id}/reject`, { method: "PUT" }),
-  startAppointment: (id: string) =>
-    request<ApiAppointment>(`/beautician/appointments/${id}/start`, { method: "PUT" }),
+  markEnRoute: (id: string) =>
+    request<ApiAppointment>(`/beautician/appointments/${id}/en-route`, { method: "PUT" }),
+  markReached: (id: string) =>
+    request<ApiAppointment>(`/beautician/appointments/${id}/reached`, { method: "PUT" }),
+  verifyServiceOtp: (id: string, otp: string) =>
+    request<ApiAppointment>(`/beautician/appointments/${id}/verify-service-otp`, {
+      method: "POST",
+      body: JSON.stringify({ otp }),
+    }),
   completeAppointment: (id: string) =>
     request<ApiAppointment>(`/beautician/appointments/${id}/complete`, { method: "PUT" }),
   getInventory: () =>
@@ -228,6 +229,8 @@ export const beauticianApi = {
       beauticianRewardAmount: number;
       shareMessage: string;
     }>("/beautician/referral"),
+  /** Per-beautician platform fee % (from admin). Requires auth. */
+  getMyCommission: () => request<{ beauticianCommissionPercent: number }>("/beautician/commission"),
   uploadKycDocuments: (files: { idFile?: File | null; selfieFile?: File | null; expFile?: File | null }) => {
     const formData = new FormData();
     if (files.idFile) formData.append("aadhar", files.idFile);

@@ -3,7 +3,6 @@ import { toast } from 'sonner';
 import { Appointment, BeauticianProfile, Notification, JobStatus } from '@/types';
 import { beauticianApi, authApi, setAuthTokens, clearAuth, setUser, getUser, type ApiAppointment, type ApiKycStatus, type ApiKycDocument } from '@/lib/api';
 import { getFCMToken, isFirebaseConfigured, onFCMMessage } from '@/lib/firebase';
-import alertSound from '@/alert.mp3';
 
 /** Show city name from populated API object; never show raw ObjectId string. */
 function cityDisplayName(city: unknown): string {
@@ -47,6 +46,7 @@ function mapApiAppointmentToAppointment(item: ApiAppointment): Appointment {
     status: item.status as JobStatus,
     totalAmount: item.price,
     notes: item.notes,
+    offerExpiresAt: item.offerExpiresAt ? new Date(item.offerExpiresAt) : undefined,
     ratingFromCustomer: item.ratingFromCustomer,
     ratingFromBeautician: item.ratingFromBeautician,
     needsBeauticianRating,
@@ -78,6 +78,10 @@ interface AppContextType {
   refreshKyc: () => Promise<void>;
   refreshProfile: () => Promise<void>;
   updateProfile: (payload: { name?: string; phone?: string }) => Promise<{ ok: boolean; error?: string }>;
+  jobOfferAppointment: Appointment | null;
+  jobOfferExpiresAt: Date | null;
+  closeJobOffer: () => void;
+  presentJobOfferFromPush: (appointmentId: string, offerExpiresAtIso?: string) => Promise<void>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -102,6 +106,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [isLoggedIn, setIsLoggedIn] = useState(!!savedUser);
   const [appointmentsLoading, setAppointmentsLoading] = useState(false);
   const [kyc, setKyc] = useState<ApiKycStatus | null>(null);
+  const [jobOfferAppointment, setJobOfferAppointment] = useState<Appointment | null>(null);
+  const [jobOfferExpiresAt, setJobOfferExpiresAt] = useState<Date | null>(null);
 
   const refreshAppointments = useCallback(async () => {
     setAppointmentsLoading(true);
@@ -161,6 +167,35 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
   }, [isLoggedIn]);
 
+  const closeJobOffer = useCallback(() => {
+    setJobOfferAppointment(null);
+    setJobOfferExpiresAt(null);
+  }, []);
+
+  const presentJobOfferFromPush = useCallback(async (appointmentId: string, offerExpiresAtIso?: string) => {
+    if (!appointmentId) return;
+    try {
+      const res = await beauticianApi.getAppointment(appointmentId);
+      if (!res.success || !res.data) return;
+      const mapped = mapApiAppointmentToAppointment(res.data);
+      if (mapped.status !== 'pending') {
+        closeJobOffer();
+        return;
+      }
+      setJobOfferAppointment(mapped);
+      const fromPush = offerExpiresAtIso ? new Date(offerExpiresAtIso) : null;
+      const fromApi = res.data.offerExpiresAt ? new Date(res.data.offerExpiresAt) : null;
+      const exp =
+        (fromPush && !Number.isNaN(fromPush.getTime()) && fromPush) ||
+        (fromApi && !Number.isNaN(fromApi.getTime()) && fromApi) ||
+        new Date(Date.now() + 30_000);
+      setJobOfferExpiresAt(exp);
+    } catch {
+      toast.error('Could not load booking details');
+      closeJobOffer();
+    }
+  }, [closeJobOffer]);
+
   // Play alert tone and refresh list when a new appointment notification arrives via FCM while app is open
   useEffect(() => {
     if (!isLoggedIn || !isFirebaseConfigured()) return;
@@ -185,14 +220,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
         ...prev,
       ]));
       if (type === 'appointment_created') {
-        const audio = new Audio(alertSound);
-        audio.play().catch(() => {});
-        // Fetch latest jobs so newly assigned bookings appear immediately
+        const id = payload.data?.appointmentId;
+        const offerExpiresAtIso = payload.data?.offerExpiresAt;
+        void presentJobOfferFromPush(id || '', offerExpiresAtIso);
         refreshAppointments();
       }
     });
     return unsubscribe;
-  }, [isLoggedIn, refreshAppointments]);
+  }, [isLoggedIn, refreshAppointments, presentJobOfferFromPush]);
 
   const login = async (email: string, password: string) => {
     try {
@@ -278,6 +313,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setIsLoggedIn(false);
     setAppointments([]);
     setActiveAppointment(null);
+    setJobOfferAppointment(null);
+    setJobOfferExpiresAt(null);
   };
 
   const updateAppointmentStatus = async (appointmentId: string, status: JobStatus): Promise<boolean> => {
@@ -286,13 +323,15 @@ export function AppProvider({ children }: { children: ReactNode }) {
         await beauticianApi.acceptAppointment(appointmentId);
       } else if (status === 'rejected') {
         await beauticianApi.rejectAppointment(appointmentId);
-      } else if (status === 'reached' || status === 'in_progress') {
-        await beauticianApi.startAppointment(appointmentId);
+      } else if (status === 'in_transit') {
+        await beauticianApi.markEnRoute(appointmentId);
+      } else if (status === 'reached') {
+        await beauticianApi.markReached(appointmentId);
       } else if (status === 'completed') {
         await beauticianApi.completeAppointment(appointmentId);
       }
       await refreshAppointments();
-      if (status === 'accepted' || status === 'reached' || status === 'in_progress') {
+      if (status === 'accepted' || status === 'in_transit' || status === 'reached' || status === 'in_progress') {
         setIsLocationSharing(true);
       } else if (status === 'completed' || status === 'cancelled') {
         setIsLocationSharing(false);
@@ -346,6 +385,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
         refreshKyc,
         refreshProfile,
         updateProfile,
+        jobOfferAppointment,
+        jobOfferExpiresAt,
+        closeJobOffer,
+        presentJobOfferFromPush,
       }}
     >
       {children}

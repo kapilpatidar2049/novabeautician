@@ -21,6 +21,7 @@ import PaymentsPayouts from "./pages/PaymentsPayouts";
 import Referral from "./pages/Referral";
 import NotFound from "./pages/NotFound";
 import KycStatus from "./pages/KycStatus";
+import { JobOfferBottomSheet } from "./components/JobOfferBottomSheet";
 
 const queryClient = new QueryClient();
 
@@ -42,6 +43,7 @@ const App = () => (
         <Toaster />
         <Sonner />
         <HashRouter>
+          <JobOfferBottomSheet />
           <div className="max-w-md mx-auto min-h-screen bg-background shadow-xl">
             <Routes>
               <Route path="/" element={<Login />} />

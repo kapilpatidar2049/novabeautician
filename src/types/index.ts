@@ -39,6 +39,8 @@ export interface Appointment {
   scheduledTime: Date;
   status: JobStatus;
   totalAmount: number;
+  /** Server-driven deadline to accept before offer moves to another beautician */
+  offerExpiresAt?: Date;
   notes?: string;
   productsUsed?: ProductUsage[];
   startedAt?: Date;

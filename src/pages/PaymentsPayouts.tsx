@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowLeft, IndianRupee, Wallet, CalendarClock } from 'lucide-react';
 import { useApp } from '@/context/AppContext';
-import { authApi } from '@/lib/api';
+import { beauticianApi } from '@/lib/api';
 
 export default function PaymentsPayouts() {
   const navigate = useNavigate();
@@ -10,8 +10,8 @@ export default function PaymentsPayouts() {
   const [beauticianCommissionPercent, setBeauticianCommissionPercent] = useState(10);
 
   useEffect(() => {
-    authApi
-      .getCommissionSettings()
+    beauticianApi
+      .getMyCommission()
       .then((res) => {
         if (res.success && res.data != null) {
           setBeauticianCommissionPercent(res.data.beauticianCommissionPercent);
