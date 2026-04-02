@@ -19,6 +19,12 @@ function cityDisplayName(city: unknown): string {
   return '';
 }
 
+function isAppointmentCreatedFcmType(type: string | undefined): boolean {
+  return String(type || '')
+    .trim()
+    .toLowerCase() === 'appointment_created';
+}
+
 function mapApiAppointmentToAppointment(item: ApiAppointment): Appointment {
   const [lng, lat] = item.location?.coordinates ?? [72.83, 19.06];
   const needsBeauticianRating =
@@ -196,12 +202,65 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, [closeJobOffer]);
 
-  // Play alert tone and refresh list when a new appointment notification arrives via FCM while app is open
+  const handleJobOfferFromFcmData = useCallback(
+    (data: Record<string, string> | undefined, notification?: { title?: string; body?: string }) => {
+      if (!data || !isAppointmentCreatedFcmType(data.type)) return;
+      const id = data.appointmentId;
+      const offerExpiresAtIso = data.offerExpiresAt;
+      setNotifications((prev) => [
+        {
+          id: `${Date.now()}_${Math.random().toString(36).slice(2, 8)}`,
+          type: 'new_job',
+          title: notification?.title || 'New booking request',
+          message: notification?.body || 'Accept or decline in the popup.',
+          timestamp: new Date(),
+          read: false,
+        },
+        ...prev,
+      ]);
+      void presentJobOfferFromPush(id || '', offerExpiresAtIso);
+      void refreshAppointments();
+    },
+    [presentJobOfferFromPush, refreshAppointments],
+  );
+
+  /** Background FCM is handled by the service worker; it forwards payloads to this tab. */
+  useEffect(() => {
+    if (!isLoggedIn || typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return;
+    const handler = (event: MessageEvent) => {
+      const msg = event.data as {
+        source?: string;
+        fcm?: { data?: Record<string, string>; notification?: { title?: string; body?: string } };
+      } | null;
+      if (!msg || msg.source !== 'fcm-sw' || !msg.fcm) return;
+      handleJobOfferFromFcmData(msg.fcm.data, msg.fcm.notification);
+    };
+    navigator.serviceWorker.addEventListener('message', handler);
+    return () => navigator.serviceWorker.removeEventListener('message', handler);
+  }, [isLoggedIn, handleJobOfferFromFcmData]);
+
+  /** Notification tap opens `/#/...?jobOffer=<id>` — show sheet after load. */
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    const raw = window.location.hash || '';
+    if (!raw.includes('jobOffer=')) return;
+    const withoutHash = raw.startsWith('#') ? raw.slice(1) : raw;
+    const qIdx = withoutHash.indexOf('?');
+    if (qIdx === -1) return;
+    const pathPart = withoutHash.slice(0, qIdx);
+    const params = new URLSearchParams(withoutHash.slice(qIdx + 1));
+    const id = params.get('jobOffer');
+    if (!id) return;
+    void presentJobOfferFromPush(id);
+    window.history.replaceState(null, '', `${window.location.pathname}${window.location.search}#${pathPart}`);
+  }, [isLoggedIn, presentJobOfferFromPush]);
+
+  // FCM while this tab is in the foreground
   useEffect(() => {
     if (!isLoggedIn || !isFirebaseConfigured()) return;
     const unsubscribe = onFCMMessage((payload) => {
       const type = payload.data?.type;
-      const notificationType = type === 'appointment_created'
+      const notificationType = isAppointmentCreatedFcmType(type)
         ? 'new_job'
         : type?.includes('payment')
           ? 'payment'
@@ -219,7 +278,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         },
         ...prev,
       ]));
-      if (type === 'appointment_created') {
+      if (isAppointmentCreatedFcmType(type)) {
         const id = payload.data?.appointmentId;
         const offerExpiresAtIso = payload.data?.offerExpiresAt;
         void presentJobOfferFromPush(id || '', offerExpiresAtIso);

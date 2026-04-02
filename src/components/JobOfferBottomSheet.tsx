@@ -29,11 +29,31 @@ export function JobOfferBottomSheet() {
 
   useEffect(() => {
     if (!open) return;
+    if (typeof navigator !== "undefined" && "vibrate" in navigator && typeof navigator.vibrate === "function") {
+      try {
+        navigator.vibrate([180, 80, 180, 80, 280]);
+      } catch {
+        /* ignore */
+      }
+    }
     const audio = new Audio(alertSound);
     audio.loop = true;
     audio.volume = 0.85;
-    void audio.play().catch(() => {});
+    const play = () => {
+      void audio.play().catch(() => {});
+    };
+    play();
+    /* Browser autoplay rules: retry once on first user interaction (tap / key). */
+    const unlock = () => {
+      play();
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+    window.addEventListener("pointerdown", unlock, { once: true });
+    window.addEventListener("keydown", unlock, { once: true });
     return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
       audio.pause();
       audio.src = "";
     };
