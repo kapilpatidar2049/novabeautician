@@ -294,7 +294,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (res.success && res.data?.user && res.data?.tokens) {
         const { user, tokens } = res.data;
         if (user.role !== 'beautician') {
-          return { ok: false, error: 'Invalid account type. Use the beautician app.' };
+          return { ok: false, error: 'Invalid account type. Only beautician accounts can log in here.' };
         }
         setAuthTokens(tokens.accessToken, tokens.refreshToken);
         setUser({ id: user.id, name: user.name, email: user.email, phone: user.phone });
@@ -326,7 +326,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (res.success && res.data?.user && res.data?.tokens) {
         const { user, tokens } = res.data;
         if (user.role !== 'beautician') {
-          return { ok: false, error: 'Invalid account type. Use the beautician app.' };
+          return { ok: false, error: 'Invalid account type. Only beautician accounts can log in here.' };
         }
         setAuthTokens(tokens.accessToken, tokens.refreshToken);
         setUser({ id: user.id, name: user.name, email: user.email, phone: user.phone });
