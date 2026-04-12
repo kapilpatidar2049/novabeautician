@@ -214,6 +214,15 @@ export default function Login() {
                 className="pl-10 h-12 text-base"
               />
             </div>
+            <div className="flex justify-end mt-[-10px]">
+              <button
+                type="button"
+                onClick={() => navigate('/forgot-password')}
+                className="text-xs text-primary font-medium hover:underline"
+              >
+                Forgot Password?
+              </button>
+            </div>
             {error && <p className="text-sm text-destructive">{error}</p>}
             <Button
               onClick={handleEmailSubmit}

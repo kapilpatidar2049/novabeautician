@@ -51,7 +51,7 @@ export function AppointmentCard({ appointment, onClick, isNext }: AppointmentCar
         </div>
         <div className="flex items-start gap-2">
           <MapPin className="w-4 h-4 text-primary mt-0.5 shrink-0" />
-          <span className="line-clamp-1">{appointment.customer.address}</span>
+          <span className="text-left line-clamp-3 leading-tight">{appointment.customer.address}</span>
         </div>
       </div>
 

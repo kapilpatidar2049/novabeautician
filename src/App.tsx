@@ -21,6 +21,8 @@ import PaymentsPayouts from "./pages/PaymentsPayouts";
 import Referral from "./pages/Referral";
 import NotFound from "./pages/NotFound";
 import KycStatus from "./pages/KycStatus";
+import ForgotPassword from "./pages/ForgotPassword";
+import Earnings from "./pages/Earnings";
 import { JobOfferBottomSheet } from "./components/JobOfferBottomSheet";
 
 const queryClient = new QueryClient();
@@ -48,6 +50,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Login />} />
               <Route path="/register" element={<Register />} />
+              <Route path="/forgot-password" element={<ForgotPassword />} />
               <Route path="/kyc" element={<ProtectedRoute><KycStatus /></ProtectedRoute>} />
               <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
               <Route path="/appointments" element={<ProtectedRoute><Appointments /></ProtectedRoute>} />
@@ -61,6 +64,7 @@ const App = () => (
               <Route path="/profile/privacy-security" element={<ProtectedRoute><PrivacySecurity /></ProtectedRoute>} />
               <Route path="/profile/help-support" element={<ProtectedRoute><HelpSupport /></ProtectedRoute>} />
               <Route path="/profile/payments" element={<ProtectedRoute><PaymentsPayouts /></ProtectedRoute>} />
+              <Route path="/profile/earnings" element={<ProtectedRoute><Earnings /></ProtectedRoute>} />
               <Route path="/profile/referral" element={<ProtectedRoute><Referral /></ProtectedRoute>} />
               <Route path="*" element={<NotFound />} />
             </Routes>

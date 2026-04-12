@@ -126,6 +126,10 @@ export const authApi = {
       city?: string | { _id: string; name?: string };
       profileImage?: string;
       profileImageUrl?: string | null;
+      rating?: number;
+      totalJobs?: number;
+      totalEarnings?: number;
+      walletBalance?: number;
     }>("/auth/profile"),
   uploadProfileImage: (file: File) => {
     const formData = new FormData();
@@ -144,6 +148,10 @@ export const authApi = {
       method: "PUT",
       body: JSON.stringify(body),
     }),
+  changePassword: (body: { currentPassword: string; newPassword: string }) =>
+    request("/auth/change-password", { method: "POST", body: JSON.stringify(body) }),
+  resetPassword: (body: { phone: string; otp: string; newPassword: string }) =>
+    request("/auth/reset-password", { method: "POST", body: JSON.stringify(body) }),
 };
 
 export interface ApiAppointment {
@@ -152,8 +160,16 @@ export interface ApiAppointment {
   service: { _id: string; name: string; basePrice: number; durationMinutes: number };
   scheduledAt: string;
   address: string;
+  addressDetails?: {
+    building?: string;
+    floor?: string;
+    landmark?: string;
+    originalAddress?: string;
+  };
   status: string;
   price: number;
+  subTotal?: number;
+  gstAmount?: number;
   notes?: string;
   location?: { coordinates: [number, number] };
   offerExpiresAt?: string;
@@ -241,4 +257,45 @@ export const beauticianApi = {
       body: formData,
     });
   },
+  getBankDetails: () =>
+    request<{
+      accountHolderName?: string;
+      accountNumber?: string;
+      ifscCode?: string;
+      upiId?: string;
+    }>("/beautician/bank-details"),
+  updateBankDetails: (body: {
+    accountHolderName: string;
+    accountNumber: string;
+    ifscCode: string;
+    upiId?: string;
+  }) => request("/beautician/bank-details", { method: "PUT", body: JSON.stringify(body) }),
+};
+
+export const notificationApi = {
+  getNotifications: () =>
+    request<
+      {
+        _id: string;
+        type: "new_job" | "delay_alert" | "payment" | "general";
+        title: string;
+        message: string;
+        createdAt: string;
+        read: boolean;
+      }[]
+    >("/notifications"),
+  markRead: (id: string) => request<any>(`/notifications/${id}/read`, { method: "PATCH" }),
+  markAllRead: () => request<any>("/notifications/read-all", { method: "PATCH" }),
+};
+
+export const withdrawalApi = {
+  request: (amount: number) =>
+    request<{ _id: string; amount: number; status: string; createdAt: string }>("/withdrawals/request", {
+      method: "POST",
+      body: JSON.stringify({ amount }),
+    }),
+  getMyHistory: () =>
+    request<{ _id: string; amount: number; status: string; createdAt: string; adminNotes?: string }[]>(
+      "/withdrawals/my"
+    ),
 };

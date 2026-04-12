@@ -55,9 +55,12 @@ export function MapPlaceholder({ customer, isLocationSharing, eta }: MapPlacehol
         </div>
 
         <h4 className="font-semibold text-foreground mb-1">{customer.name}</h4>
-        <p className="text-sm text-muted-foreground mb-1">{customer.address}</p>
+        <p className="text-sm text-muted-foreground mb-1">
+          {customer.building && <span className="block font-medium">{customer.building}{customer.floor ? `, Fl ${customer.floor}` : ''}</span>}
+          {customer.originalAddress || customer.address}
+        </p>
         {customer.landmark && (
-          <p className="text-xs text-muted-foreground">📍 {customer.landmark}</p>
+          <p className="text-xs text-primary font-medium mt-1">📍 Landmark: {customer.landmark}</p>
         )}
 
         <Button

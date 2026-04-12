@@ -7,6 +7,9 @@ export interface Customer {
   address: string;
   city: string;
   landmark?: string;
+  building?: string;
+  floor?: string;
+  originalAddress?: string;
   coordinates: {
     lat: number;
     lng: number;
@@ -39,6 +42,8 @@ export interface Appointment {
   scheduledTime: Date;
   status: JobStatus;
   totalAmount: number;
+  subTotal?: number;
+  gstAmount?: number;
   /** Server-driven deadline to accept before offer moves to another beautician */
   offerExpiresAt?: Date;
   notes?: string;
@@ -62,6 +67,8 @@ export interface BeauticianProfile {
   isOnline: boolean;
   rating: number;
   totalJobs: number;
+  totalEarnings?: number;
+  walletBalance?: number;
 }
 
 export interface EarningsSummary {

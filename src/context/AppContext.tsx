@@ -1,7 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, ReactNode } from 'react';
 import { toast } from 'sonner';
 import { Appointment, BeauticianProfile, Notification, JobStatus } from '@/types';
-import { beauticianApi, authApi, setAuthTokens, clearAuth, setUser, getUser, type ApiAppointment, type ApiKycStatus, type ApiKycDocument } from '@/lib/api';
+import { beauticianApi, authApi, notificationApi, withdrawalApi, setAuthTokens, clearAuth, setUser, getUser, type ApiAppointment, type ApiKycStatus, type ApiKycDocument } from '@/lib/api';
 import { getFCMToken, isFirebaseConfigured, onFCMMessage } from '@/lib/firebase';
 
 /** Show city name from populated API object; never show raw ObjectId string. */
@@ -38,6 +38,10 @@ function mapApiAppointmentToAppointment(item: ApiAppointment): Appointment {
       phone: item.customer.phone || '',
       address: item.address,
       city: '',
+      landmark: item.addressDetails?.landmark,
+      building: item.addressDetails?.building,
+      floor: item.addressDetails?.floor,
+      originalAddress: item.addressDetails?.originalAddress,
       coordinates: { lat, lng },
     },
     services: [
@@ -51,6 +55,8 @@ function mapApiAppointmentToAppointment(item: ApiAppointment): Appointment {
     scheduledTime: new Date(item.scheduledAt),
     status: item.status as JobStatus,
     totalAmount: item.price,
+    subTotal: item.subTotal,
+    gstAmount: item.gstAmount,
     notes: item.notes,
     offerExpiresAt: item.offerExpiresAt ? new Date(item.offerExpiresAt) : undefined,
     ratingFromCustomer: item.ratingFromCustomer,
@@ -88,6 +94,9 @@ interface AppContextType {
   jobOfferExpiresAt: Date | null;
   closeJobOffer: () => void;
   presentJobOfferFromPush: (appointmentId: string, offerExpiresAtIso?: string) => Promise<void>;
+  changePassword: (currentPassword: string, newPassword: string) => Promise<{ ok: boolean; error?: string }>;
+  resetPassword: (body: { phone: string; otp: string; newPassword: string }) => Promise<{ ok: boolean; error?: string }>;
+  requestWithdrawal: (amount: number) => Promise<{ ok: boolean; error?: string }>;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
@@ -100,6 +109,8 @@ const defaultBeauticianProfile = (savedUser: { name: string; phone?: string } | 
   isOnline: true,
   rating: 0,
   totalJobs: 0,
+  walletBalance: 0,
+  totalEarnings: 0,
 });
 
 export function AppProvider({ children }: { children: ReactNode }) {
@@ -140,6 +151,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
           phone: res.data?.phone || b.phone,
           city: cityValue || b.city || '',
           profileImageUrl: res.data.profileImageUrl ?? null,
+          totalJobs: res.data.totalJobs ?? b.totalJobs,
+          rating: res.data.rating ?? b.rating,
+          totalEarnings: res.data.totalEarnings ?? 0,
+          walletBalance: res.data.walletBalance ?? b.walletBalance ?? 0,
         }));
       }
     } catch {
@@ -158,13 +173,32 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const refreshNotifications = useCallback(async () => {
+    try {
+      const res = await notificationApi.getNotifications();
+      if (res.success && res.data) {
+        setNotifications(res.data.map(n => ({
+          id: n._id,
+          type: n.type as any,
+          title: n.title,
+          message: n.message,
+          timestamp: new Date(n.createdAt),
+          read: n.read
+        })));
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
   useEffect(() => {
     if (isLoggedIn) {
       refreshProfile();
       refreshAppointments();
       refreshKyc();
+      refreshNotifications();
     }
-  }, [isLoggedIn, refreshAppointments, refreshKyc, refreshProfile]);
+  }, [isLoggedIn, refreshAppointments, refreshKyc, refreshProfile, refreshNotifications]);
 
   useEffect(() => {
     if (!isLoggedIn || !isFirebaseConfigured()) return;
@@ -367,6 +401,39 @@ export function AppProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  const changePassword = async (currentPassword: string, newPassword: string) => {
+    try {
+      const res = await authApi.changePassword({ currentPassword, newPassword });
+      if (res.success) return { ok: true };
+      return { ok: false, error: (res as { message?: string }).message || 'Failed to change password' };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'Failed to change password' };
+    }
+  };
+
+  const resetPassword = async (body: { phone: string; otp: string; newPassword: string }) => {
+    try {
+      const res = await authApi.resetPassword(body);
+      if (res.success) return { ok: true };
+      return { ok: false, error: (res as { message?: string }).message || 'Failed to reset password' };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'Failed to reset password' };
+    }
+  };
+
+  const requestWithdrawal = async (amount: number) => {
+    try {
+      const res = await withdrawalApi.request(amount);
+      if (res.success) {
+        await refreshProfile(); // To update wallet balance in UI
+        return { ok: true };
+      }
+      return { ok: false, error: (res as { message?: string }).message || 'Failed to request withdrawal' };
+    } catch (e) {
+      return { ok: false, error: e instanceof Error ? e.message : 'Failed to request withdrawal' };
+    }
+  };
+
   const logout = () => {
     clearAuth();
     setIsLoggedIn(false);
@@ -448,6 +515,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
         jobOfferExpiresAt,
         closeJobOffer,
         presentJobOfferFromPush,
+        changePassword,
+        resetPassword,
+        requestWithdrawal,
       }}
     >
       {children}

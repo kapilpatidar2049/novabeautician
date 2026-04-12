@@ -33,12 +33,11 @@ export default function Profile() {
     { icon: UserCog, label: 'Edit Profile', chevron: true, action: () => navigate('/profile/edit') },
     { icon: Gift, label: 'Refer & earn', chevron: true, action: () => navigate('/profile/referral') },
     { icon: Building2, label: 'Bank Details', chevron: true, action: () => navigate('/profile/bank-details') },
-    { icon: IndianRupee, label: 'Payments & Payouts', chevron: true, action: () => navigate('/profile/payments') },
-    { icon: IndianRupee, label: 'Earnings', value: `₹${thisMonthEarnings.toLocaleString()}` },
+    { icon: Wallet, label: 'Wallet & Payouts', value: `₹${(beautician.walletBalance || 0).toLocaleString()}`, chevron: true, action: () => navigate('/profile/payments') },
+    { icon: IndianRupee, label: 'Earnings', value: `₹${thisMonthEarnings.toLocaleString()}`, chevron: true, action: () => navigate('/profile/earnings') },
     { icon: FileText, label: 'Documents', chevron: true, action: () => navigate('/profile/documents') },
     { icon: Shield, label: 'Privacy & Security', chevron: true, action: () => navigate('/profile/privacy-security') },
     { icon: HelpCircle, label: 'Help & Support', chevron: true, action: () => navigate('/profile/help-support') },
-    { icon: Wallet, label: 'Wallet Balance', value: 'Track in Payments' },
   ];
 
   const handleLogout = () => {

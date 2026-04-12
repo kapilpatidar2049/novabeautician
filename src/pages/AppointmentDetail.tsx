@@ -78,11 +78,12 @@ export default function AppointmentDetail() {
                 {appointment.customer.name}
               </h2>
               <p className="text-sm text-muted-foreground">
-                {appointment.customer.address}
+                {appointment.customer.building && <span className="block font-medium text-foreground">{appointment.customer.building}{appointment.customer.floor ? `, Floor ${appointment.customer.floor}` : ''}</span>}
+                {appointment.customer.originalAddress || appointment.customer.address}
               </p>
-              {appointment.customer.landmark && (
-                <p className="text-xs text-muted-foreground mt-1">
-                  📍 {appointment.customer.landmark}
+              {(appointment.customer.landmark) && (
+                <p className="text-xs text-primary mt-1 font-medium bg-primary/5 px-2 py-0.5 rounded-full inline-block">
+                  📍 Landmark: {appointment.customer.landmark}
                 </p>
               )}
             </div>
@@ -90,6 +91,9 @@ export default function AppointmentDetail() {
               <p className="text-xl font-bold text-foreground">
                 ₹{appointment.totalAmount.toLocaleString()}
               </p>
+              {appointment.gstAmount ? (
+                <p className="text-[10px] text-muted-foreground font-medium">Incl. GST</p>
+              ) : null}
             </div>
           </div>
 
@@ -154,11 +158,23 @@ export default function AppointmentDetail() {
             ))}
           </div>
 
-          <div className="mt-3 pt-3 border-t border-border flex items-center justify-between">
-            <span className="font-semibold text-foreground">Total</span>
-            <span className="text-lg font-bold text-primary">
-              ₹{appointment.totalAmount.toLocaleString()}
-            </span>
+          <div className="mt-3 pt-3 border-t border-border space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">Subtotal</span>
+              <span className="font-semibold text-foreground">₹{(appointment.subTotal || appointment.totalAmount).toLocaleString()}</span>
+            </div>
+            {appointment.gstAmount ? (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">GST</span>
+                <span className="font-semibold text-foreground">₹{appointment.gstAmount.toLocaleString()}</span>
+              </div>
+            ) : null}
+            <div className="flex items-center justify-between pt-2 border-t border-border">
+              <span className="font-semibold text-foreground">Total to Collect</span>
+              <span className="text-xl font-bold text-primary">
+                ₹{appointment.totalAmount.toLocaleString()}
+              </span>
+            </div>
           </div>
         </div>
 
